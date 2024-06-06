@@ -1,5 +1,5 @@
 ---
-title: "Maximum of a function with QGA"
+title: "Finding the maximum of a function with QGA"
 author: "Giulio Barcaroli"
 date: "`r Sys.Date()`"
 output: html_document
@@ -26,9 +26,9 @@ plot(x,y)
 ```
 
 
-determine its maximum in the interval 0-15.
+we want to determine its maximum in the interval 0-15.
 
-First of all, we use the analytical approach: first, we obtain the first derivative of the function, and then calculate its roots when f(x) = 0:
+First of all, we use the analytic approach: first, we obtain the first derivative of the function, and then calculate its roots when f(x) = 0:
 
 ```{r message=FALSE, warning=FALSE}
 # Analytic solution
@@ -55,6 +55,7 @@ f_root1 <- f(root1)
 cat("f(", root1, ") ≈", f_root1, "\n")
 # cat("f(", root2, ") ≈", f_root2, "\n")
 ```
+
 So, in correspondence with x=11.16085, we have a maximum for f(x) that is equal to 6.078025.
 
 The solution found by Lahoz-Beltra is 5.999, somehow far from the real optimum, basically because in his example he defines a genome whose length is only 4. This implies that only 2^4=16 points are explored in the interval 0-15.
@@ -89,6 +90,8 @@ Note that
 - the solution is always generated as a sequence of 1 and 2, so it is necessary to reduce it to a sequence of 0 and 1 (solution - 1);
 
 - the current binary solution is used to generate a real number in the 0-15 interval.
+
+Incidentally, if we want to find the minimum of the f(x), the fitness function should return (-fitness).
 
 Then, we set the parameters:
 
@@ -160,6 +163,6 @@ Finally, we can have a picture of the exploration of the interval 0-15 by lookin
 
 ```{r}
 plot(X,Y,type="h",col="red")
-title("f(x)=abs(x-5/2+sin(x))")
+title("f(x)=abs((x-5)/(2+sin(x)))")
 ```
 
