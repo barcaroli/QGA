@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   functionMax: functionMax.html
   QGA: QGA.html
-last_built: 2024-06-06T16:22Z
+last_built: 2024-06-06T17:02Z
 urls:
   reference: https://barcaroli.github.io/QGA//reference
   article: https://barcaroli.github.io/QGA//articles
