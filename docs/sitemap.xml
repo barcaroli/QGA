@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://barcaroli.github.io/QGA/index.html</loc>
+    <loc>https://barcaroli.github.io/QGA//index.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/reference/QGA.html</loc>
+    <loc>https://barcaroli.github.io/QGA//reference/QGA.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/articles/QGA.html</loc>
+    <loc>https://barcaroli.github.io/QGA//articles/functionMax.html</loc>
+  </url>
+  <url>
+    <loc>https://barcaroli.github.io/QGA//articles/QGA.html</loc>
   </url>
 </urlset>
