@@ -198,10 +198,8 @@ always set to 1/(popsize + 1)=0.04761905: this means that at each
 iteration, about 4.7% of the bit values are swapped.</p>
 <p>Finally, we apply the quantum genetic algorithm:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://barcaroli.github.io/QGA/">QGA</a></span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Loading required package: bookdown</span></span></code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://barcaroli.github.io/QGA/">QGA</a></span><span class="op">)</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
 <span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
 <span><span class="va">solutionQGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span><span class="va">popsize</span>,</span>
@@ -224,12 +222,12 @@ iteration, about 4.7% of the bit values are swapped.</p>
 <span><span class="co">##  *** Best fitness:  6.077961</span></span></code></pre>
 <p><img src="functionMax_files/figure-html/unnamed-chunk-5-1.png" width="700">
 The found solution is</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solutionQGA</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solution</span> <span class="op">-</span> <span class="fl">1</span></span>
 <span><span class="va">solution</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] 1 1 0 0 0 0 1 0 0 1 1 1 1 1 1 1</span></span></code></pre>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span><span class="op">=</span><span class="fl">0</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">Genome</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">x</span><span class="op">=</span><span class="va">x</span><span class="op">+</span><span class="va">solution</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">*</span><span class="fl">2</span><span class="op">^</span><span class="op">(</span><span class="va">Genome</span><span class="op">-</span><span class="va">j</span><span class="op">)</span></span>
@@ -240,13 +238,13 @@ The found solution is</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Function maximum: "</span>,<span class="va">y</span>,<span class="st">" at x="</span>,<span class="va">x</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Function maximum:  6.077961  at x= 11.15619</span></span></code></pre>
 <p>We remind that the analytical solution was:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"f("</span>, <span class="va">root1</span>, <span class="st">") ≈"</span>, <span class="va">f_root1</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## f( 11.16085 ) ≈ 6.078025</span></span></code></pre>
 <p>very close to the one found by the QGA.</p>
 <p>Finally, we can have a picture of the exploration of the interval
 0-15 by looking at the following plot:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">Y</span>,type<span class="op">=</span><span class="st">"h"</span>,col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html" class="external-link">title</a></span><span class="op">(</span><span class="st">"f(x)=abs((x-5)/(2+sin(x)))"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="functionMax_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
