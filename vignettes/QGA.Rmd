@@ -30,7 +30,8 @@ knitr::opts_chunk$set(fig.width=6, fig.height=4,
   collapse = TRUE,
   comment = "#>"
 )
-require(bookdown)
+if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
+library(bookdown)
 library(QGA)
 ```
 
