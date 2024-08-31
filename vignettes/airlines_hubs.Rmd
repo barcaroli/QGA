@@ -8,8 +8,6 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(QGA)
-library(tidyverse)
-library(ggplot2)
 ```
 
 In this example, we show how, With the Quantum Genetic Algorithm, it is possible to determine the most convenient hubs given a set of 25 USA airports.
@@ -100,6 +98,8 @@ print(cities[,c(2,5)])
 We can plot them on a map:
 
 ```{r message=FALSE, warning=FALSE}
+if (!require(tidyverse)) install.packages("tidyverse", dependencies=TRUE)
+if (!require(ggplot2)) install.packages("ggplot2", dependencies=TRUE)
 connections <- cities %>%
   left_join(cities %>% select(City, Lat, Long), by = c("Hub" = "City")) %>%
   rename(Hub_Lat = Lat.y, Hub_Long = Long.y) %>%
