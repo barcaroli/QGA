@@ -65,7 +65,7 @@ popsize = 20
 Genome = nrow(iris)
 set.seed(1234)
 solutionQGA <- QGA(popsize,
-                generation_max = 1000,
+                generation_max = 2000,
                 nvalues_sol = nstrat,
                 Genome,
                 thetainit = 3.1415926535 * 0.15,

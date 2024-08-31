@@ -35,11 +35,16 @@ sum(items$weight)
 maxweight = sum(items$weight) / 5
 maxweight
 
-
+write.table(items,"items.csv",sep=",",quote=F,row.names=F)
+#----------------------
+data <- items
+data$Item <- 1
+data$weight <- round(data$weight)
+write.table(data,"QGA.csv",sep=",",quote=F,row.names=F)
 #----------------------
 # Perform optimization
 popsize = 20
-generation_max = 500
+generation_max = 100
 nvalues_sol = 2
 Genome = nrow(items)
 thetainit = 3.1415926535 * 0.05
@@ -79,7 +84,7 @@ best <- knapsackSolution[[1]] - 1
 sum(best)
 sum(items$weight[best])
 maxweight
-
+sum(items$weight[best])/maxweight
 #-----------------------------------------
 # Compare with classical genetic algorithm
 library(genalg)

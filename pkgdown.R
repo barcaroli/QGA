@@ -18,7 +18,7 @@ library(pkgdown)
 # usethis::use_pkgdown()
 usethis::use_pkgdown_github_pages()
 # build_favicons(pkg = ".")
-init_site(pkg = ".")
+# init_site(pkg = ".")
 pkgdown::build_site()
 
 
