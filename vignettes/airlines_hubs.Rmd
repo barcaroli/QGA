@@ -100,6 +100,8 @@ We can plot them on a map:
 ```{r message=FALSE, warning=FALSE}
 if (!require(tidyverse)) install.packages("tidyverse", dependencies=TRUE)
 if (!require(ggplot2)) install.packages("ggplot2", dependencies=TRUE)
+library(tidyverse)
+library(ggplot2)
 connections <- cities %>%
   left_join(cities %>% select(City, Lat, Long), by = c("Hub" = "City")) %>%
   rename(Hub_Lat = Lat.y, Hub_Long = Long.y) %>%
