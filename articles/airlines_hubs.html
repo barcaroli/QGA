@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">Giulio
 Barcaroli</h4>
             
-            <h4 data-toc-skip class="date">2024-08-31</h4>
+            <h4 data-toc-skip class="date">2024-09-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/barcaroli/QGA/blob/main/vignettes/airlines_hubs.Rmd" class="external-link"><code>vignettes/airlines_hubs.Rmd</code></a></small>
       <div class="hidden name"><code>airlines_hubs.Rmd</code></div>
@@ -95,11 +95,8 @@ Barcaroli</h4>
     
     
 <p>In this example, we show how, With the Quantum Genetic Algorithm, it
-is possible to determine the most convenient hubs given a set of 25 USA
+is possible to determine the most convenient hubs, given a set of 25 USA
 airports.</p>
-<div class="section level3">
-<h3 id="input-data">Input data<a class="anchor" aria-label="anchor" href="#input-data"></a>
-</h3>
 <p>As input data, we consider the 25 airports, with their geographical
 coordinates:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -193,42 +190,44 @@ destination airport. The second one is related to the flows:</p>
 <span><span class="co">##  $ V23: num  2704 3719 4284 13618 1067 ...</span></span>
 <span><span class="co">##  $ V24: num  12250 2015 8085 17580 4608 ...</span></span>
 <span><span class="co">##  $ V25: num  16132 565 51895 40708 7050 ...</span></span></code></pre>
-<p>that is, for each origin airport, the estimated number of passenger
+<p>that is, for each origin airport, the estimated number of passengers
 that want to reach the destination airport.</p>
-</div>
-<div class="section level3">
-<h3 id="optimization-by-costs-minimization">Optimization by costs minimization<a class="anchor" aria-label="anchor" href="#optimization-by-costs-minimization"></a>
-</h3>
-<p>As a first exercise, we will use the cost to determine which could be
-the 3 more convenient hubs for the 25 airports.</p>
+<p>We want to minimize the total cost of the optimal solution, to
+determine which could be the three more convenient hubs for the 25
+airports.</p>
 <p>This is the fitness function:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">airline_hub</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span>,<span class="va">input</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">obj</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">input</span><span class="op">[</span>,<span class="va">solution</span><span class="op">]</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="co"># Penalization</span></span>
-<span>  <span class="co"># if (length(table(solution)) &lt; length(solution)) {</span></span>
-<span>  <span class="co">#  obj &lt;- sum(input)</span></span>
-<span>  <span class="co"># }</span></span>
+<span>  <span class="va">cost</span> <span class="op">&lt;-</span> <span class="va">input</span><span class="op">$</span><span class="va">cost</span></span>
+<span>  <span class="va">flow</span> <span class="op">&lt;-</span> <span class="va">input</span><span class="op">$</span><span class="va">flow</span></span>
+<span>  <span class="va">penalization</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">cost</span><span class="op">)</span><span class="op">*</span><span class="fl">0.0005</span></span>
+<span>  <span class="va">obj</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">cost</span><span class="op">[</span>,<span class="va">solution</span><span class="op">]</span> <span class="op">*</span> <span class="va">flow</span><span class="op">[</span>,<span class="va">solution</span><span class="op">]</span>, <span class="fl">1</span>, <span class="va">min</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">cost</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">obj</span> <span class="op">&lt;-</span> <span class="va">obj</span> <span class="op">-</span> <span class="va">penalization</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="co"># cat("\nSolution:",solution,"  obj: ",obj)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>This function will receive, as input, the cost matrix. The current
-solution, to be evaluated, will select the three columns corresponding
-to the three hubs, and calculate the sum of the costs for each origin
-airport to reach the hub, selecting the minimum. The minus sign is due
-to the fact that we want to minimize the value of the objective
-function.</p>
+<p>This function will receive, as input, the cost matrix and the flow
+matrix. The current solution, to be evaluated, will select the three
+columns corresponding to the three hubs, and calculate the sum of the
+costs for each origin airport to reach the hub, multiplied by the flows
+for each origin airport to reach the hub, selecting the minimum. The
+minus sign is due to the fact that we want to minimize the value of the
+objective function.</p>
 <p>We can now proceed with the optimization. Note that we set the value
 of the genome equal to 3 (the number of the desired hubs), and the
 number of the values to be attributed to each element of the genome is
 set equal to the number of the airports (25).</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">popsize</span> <span class="op">=</span> <span class="fl">20</span></span>
+<code class="sourceCode R"><span><span class="va">input</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cost<span class="op">=</span><span class="va">cost</span>,flow<span class="op">=</span><span class="va">flow</span><span class="op">)</span></span>
+<span><span class="va">popsize</span> <span class="op">=</span> <span class="fl">20</span></span>
 <span><span class="va">Genome</span> <span class="op">=</span> <span class="fl">3</span> <span class="co"># Number of desired hubs</span></span>
 <span><span class="va">nvalues_sol</span> <span class="op">=</span> <span class="fl">25</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4321</span><span class="op">)</span></span>
 <span><span class="va">solutionQGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span></span>
 <span>                <span class="va">popsize</span>,</span>
-<span>                generation_max <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>                generation_max <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>                <span class="va">nvalues_sol</span>,</span>
 <span>                <span class="va">Genome</span>,</span>
 <span>                thetainit <span class="op">=</span> <span class="fl">3.1415926535</span> <span class="op">*</span> <span class="fl">0.025</span>,</span>
@@ -242,15 +241,15 @@ set equal to the number of the airports (25).</p>
 <span>                progress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                eval_fitness <span class="op">=</span> <span class="va">airline_hub</span>,</span>
-<span>                eval_func_inputs <span class="op">=</span> <span class="va">cost</span><span class="op">)</span></span></code></pre></div>
+<span>                eval_func_inputs <span class="op">=</span> <span class="va">input</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
-<span><span class="co">##  *** Best fitness:  -9435.66</span></span></code></pre>
-<p><img src="airlines_hubs_files/figure-html/unnamed-chunk-5-1.png" width="700">
-The found solution:</p>
+<span><span class="co">##  *** Best fitness:  -69.59383</span></span></code></pre>
+<p><img src="airlines_hubs_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p>The found solution:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solutionQGA</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">cities</span><span class="op">$</span><span class="va">City</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "MEM" "PIT" "LAX"</span></span></code></pre>
+<pre><code><span><span class="co">## [1] "LAX" "MEM" "PHL"</span></span></code></pre>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sol</span> <span class="op">&lt;-</span> <span class="va">cost</span><span class="op">[</span>,<span class="va">solution</span><span class="op">]</span> </span>
 <span><span class="va">find_min_column</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">row</span><span class="op">)</span> <span class="op">{</span></span>
@@ -258,20 +257,20 @@ The found solution:</p>
 <span><span class="op">}</span></span>
 <span><span class="va">min_column_vector</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sol</span>, <span class="fl">1</span>, <span class="va">find_min_column</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">min_column_vector</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##  [1] 1 2 2 2 2 2 1 3 2 1 1 3 1 1 1 1 2 2 3 2 1 3 3 1 2</span></span></code></pre>
+<pre><code><span><span class="co">##  [1] 2 3 3 2 2 3 2 1 3 2 2 1 2 2 2 2 3 3 1 3 2 1 1 2 3</span></span></code></pre>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cities</span><span class="op">$</span><span class="va">Hub</span> <span class="op">&lt;-</span> <span class="va">cities</span><span class="op">$</span><span class="va">City</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span><span class="op">[</span><span class="va">min_column_vector</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cities</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">5</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    City Hub</span></span>
 <span><span class="co">## 1   ATL MEM</span></span>
-<span><span class="co">## 2   BWI PIT</span></span>
-<span><span class="co">## 3   BOS PIT</span></span>
-<span><span class="co">## 4   ORD PIT</span></span>
-<span><span class="co">## 5   CVG PIT</span></span>
-<span><span class="co">## 6   CLE PIT</span></span>
+<span><span class="co">## 2   BWI PHL</span></span>
+<span><span class="co">## 3   BOS PHL</span></span>
+<span><span class="co">## 4   ORD MEM</span></span>
+<span><span class="co">## 5   CVG MEM</span></span>
+<span><span class="co">## 6   CLE PHL</span></span>
 <span><span class="co">## 7   DFW MEM</span></span>
 <span><span class="co">## 8   DEN LAX</span></span>
-<span><span class="co">## 9   DET PIT</span></span>
+<span><span class="co">## 9   DET PHL</span></span>
 <span><span class="co">## 10  IAH MEM</span></span>
 <span><span class="co">## 11  MCI MEM</span></span>
 <span><span class="co">## 12  LAX LAX</span></span>
@@ -279,15 +278,15 @@ The found solution:</p>
 <span><span class="co">## 14  MIA MEM</span></span>
 <span><span class="co">## 15  MSP MEM</span></span>
 <span><span class="co">## 16  MSY MEM</span></span>
-<span><span class="co">## 17  LGA PIT</span></span>
-<span><span class="co">## 18  PHL PIT</span></span>
+<span><span class="co">## 17  LGA PHL</span></span>
+<span><span class="co">## 18  PHL PHL</span></span>
 <span><span class="co">## 19  PHX LAX</span></span>
-<span><span class="co">## 20  PIT PIT</span></span>
+<span><span class="co">## 20  PIT PHL</span></span>
 <span><span class="co">## 21  STL MEM</span></span>
 <span><span class="co">## 22  SFO LAX</span></span>
 <span><span class="co">## 23  SEA LAX</span></span>
 <span><span class="co">## 24  TPA MEM</span></span>
-<span><span class="co">## 25  DCA PIT</span></span></code></pre>
+<span><span class="co">## 25  DCA PHL</span></span></code></pre>
 <p>We can plot them on a map:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"tidyverse"</span>, dependencies<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
@@ -325,109 +324,6 @@ The found solution:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span>, size <span class="op">=</span> <span class="fl">16</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gg</span><span class="op">)</span></span></code></pre></div>
 <p><img src="airlines_hubs_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
-</div>
-<div class="section level3">
-<h3 id="optimization-by-flows-maximization">Optimization by flows maximization<a class="anchor" aria-label="anchor" href="#optimization-by-flows-maximization"></a>
-</h3>
-<p>Alternatively, we can use the flows instead of the cost.</p>
-<p>To do that, we do not need to modify the fitness function, even if
-now we want to maximize the flows instead than minimizing the cost. We
-just need to consider the negative values of the flows:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4321</span><span class="op">)</span></span>
-<span><span class="va">solutionQGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span></span>
-<span>                <span class="va">popsize</span>,</span>
-<span>                generation_max <span class="op">=</span> <span class="fl">200</span>,</span>
-<span>                <span class="va">nvalues_sol</span>,</span>
-<span>                <span class="va">Genome</span>,</span>
-<span>                thetainit <span class="op">=</span> <span class="fl">3.1415926535</span> <span class="op">*</span> <span class="fl">0.025</span>,</span>
-<span>                thetaend <span class="op">=</span> <span class="fl">3.1415926535</span> <span class="op">*</span> <span class="fl">0.005</span>,</span>
-<span>                pop_mutation_rate_init <span class="op">=</span> <span class="fl">3</span><span class="op">/</span><span class="op">(</span><span class="va">popsize</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                pop_mutation_rate_end <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="va">popsize</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                mutation_rate_init <span class="op">=</span> <span class="fl">3</span><span class="op">/</span><span class="op">(</span><span class="va">Genome</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                mutation_rate_end <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="va">Genome</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                mutation_flag <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                plotting <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                progress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                eval_fitness <span class="op">=</span> <span class="va">airline_hub</span>,</span>
-<span>                eval_func_inputs <span class="op">=</span> <span class="op">-</span><span class="va">flow</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## </span></span>
-<span><span class="co">##  *** Best fitness:  1762214</span></span></code></pre>
-<p><img src="airlines_hubs_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
-<p>The solution is:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solutionQGA</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">cities</span><span class="op">$</span><span class="va">City</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "LGA" "ORD" "LAX"</span></span></code></pre>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sol</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="va">flow</span><span class="op">[</span>,<span class="va">solution</span><span class="op">]</span> </span>
-<span><span class="va">find_min_column</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">row</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.min</a></span><span class="op">(</span><span class="va">row</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="va">min_column_vector</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sol</span>, <span class="fl">1</span>, <span class="va">find_min_column</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">min_column_vector</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##  [1] 1 1 1 1 1 1 1 3 1 1 2 1 2 1 2 1 2 2 3 1 2 3 3 1 1</span></span></code></pre>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cities</span><span class="op">$</span><span class="va">Hub</span> <span class="op">&lt;-</span> <span class="va">cities</span><span class="op">$</span><span class="va">City</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span><span class="op">[</span><span class="va">min_column_vector</span><span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cities</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">5</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##    City Hub</span></span>
-<span><span class="co">## 1   ATL LGA</span></span>
-<span><span class="co">## 2   BWI LGA</span></span>
-<span><span class="co">## 3   BOS LGA</span></span>
-<span><span class="co">## 4   ORD LGA</span></span>
-<span><span class="co">## 5   CVG LGA</span></span>
-<span><span class="co">## 6   CLE LGA</span></span>
-<span><span class="co">## 7   DFW LGA</span></span>
-<span><span class="co">## 8   DEN LAX</span></span>
-<span><span class="co">## 9   DET LGA</span></span>
-<span><span class="co">## 10  IAH LGA</span></span>
-<span><span class="co">## 11  MCI ORD</span></span>
-<span><span class="co">## 12  LAX LGA</span></span>
-<span><span class="co">## 13  MEM ORD</span></span>
-<span><span class="co">## 14  MIA LGA</span></span>
-<span><span class="co">## 15  MSP ORD</span></span>
-<span><span class="co">## 16  MSY LGA</span></span>
-<span><span class="co">## 17  LGA ORD</span></span>
-<span><span class="co">## 18  PHL ORD</span></span>
-<span><span class="co">## 19  PHX LAX</span></span>
-<span><span class="co">## 20  PIT LGA</span></span>
-<span><span class="co">## 21  STL ORD</span></span>
-<span><span class="co">## 22  SFO LAX</span></span>
-<span><span class="co">## 23  SEA LAX</span></span>
-<span><span class="co">## 24  TPA LGA</span></span>
-<span><span class="co">## 25  DCA LGA</span></span></code></pre>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">connections</span> <span class="op">&lt;-</span> <span class="va">cities</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">cities</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">City</span>, <span class="va">Lat</span>, <span class="va">Long</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Hub"</span> <span class="op">=</span> <span class="st">"City"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>Hub_Lat <span class="op">=</span> <span class="va">Lat.y</span>, Hub_Long <span class="op">=</span> <span class="va">Long.y</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">City</span>, Lat <span class="op">=</span> <span class="va">Lat.x</span>, Long <span class="op">=</span> <span class="va">Long.x</span>, <span class="va">Hub</span>, <span class="va">Hub_Lat</span>, <span class="va">Hub_Long</span><span class="op">)</span></span>
-<span><span class="va">hubs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">cities</span><span class="op">$</span><span class="va">Hub</span><span class="op">)</span></span>
-<span><span class="va">hub_connections</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>Hub1 <span class="op">=</span> <span class="va">hubs</span>, Hub2 <span class="op">=</span> <span class="va">hubs</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Hub1</span> <span class="op">&lt;</span> <span class="va">Hub2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>  <span class="co"># Evita duplicati e auto-connessioni</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">cities</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">City</span>, <span class="va">Lat</span>, <span class="va">Long</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Hub1"</span> <span class="op">=</span> <span class="st">"City"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>Lat1 <span class="op">=</span> <span class="va">Lat</span>, Long1 <span class="op">=</span> <span class="va">Long</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">cities</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">City</span>, <span class="va">Lat</span>, <span class="va">Long</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Hub2"</span> <span class="op">=</span> <span class="st">"City"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>Lat2 <span class="op">=</span> <span class="va">Lat</span>, Long2 <span class="op">=</span> <span class="va">Long</span><span class="op">)</span></span>
-<span><span class="va">usa_map</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/map_data.html" class="external-link">map_data</a></span><span class="op">(</span><span class="st">"state"</span><span class="op">)</span></span>
-<span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_polygon.html" class="external-link">geom_polygon</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">usa_map</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">long</span>, y <span class="op">=</span> <span class="va">lat</span>, group <span class="op">=</span> <span class="va">group</span><span class="op">)</span>, fill <span class="op">=</span> <span class="st">"white"</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="fl">1.3</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">xlim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">125</span>, <span class="op">-</span><span class="fl">66</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fl">25</span>, <span class="fl">50</span><span class="op">)</span></span>
-<span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="va">gg</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">connections</span>, </span>
-<span>                        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Long</span>, y <span class="op">=</span> <span class="va">Lat</span>, xend <span class="op">=</span> <span class="va">Hub_Long</span>, yend <span class="op">=</span> <span class="va">Hub_Lat</span><span class="op">)</span>,</span>
-<span>                        color <span class="op">=</span> <span class="st">"blue"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span>, size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="va">gg</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">hub_connections</span>,</span>
-<span>                        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Long1</span>, y <span class="op">=</span> <span class="va">Lat1</span>, xend <span class="op">=</span> <span class="va">Long2</span>, yend <span class="op">=</span> <span class="va">Lat2</span><span class="op">)</span>,</span>
-<span>                        color <span class="op">=</span> <span class="st">"red"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span>, size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="va">gg</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">cities</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Long</span>, y <span class="op">=</span> <span class="va">Lat</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"blue"</span>, size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="va">gg</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">cities</span><span class="op">[</span><span class="va">solution</span>,<span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Long</span>, y <span class="op">=</span> <span class="va">Lat</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"red"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="va">gg</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">cities</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Long</span>, y <span class="op">=</span> <span class="va">Lat</span>, label <span class="op">=</span> <span class="va">City</span><span class="op">)</span>, hjust <span class="op">=</span> <span class="fl">1</span>, vjust <span class="op">=</span> <span class="fl">1</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="va">gg</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Airlines hubs (flows maximization)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span>, size <span class="op">=</span> <span class="fl">16</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gg</span><span class="op">)</span></span></code></pre></div>
-<p><img src="airlines_hubs_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
-</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
