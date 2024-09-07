@@ -26,7 +26,8 @@ cost <- read.csv("Airlines_cost.csv",header=F)
 str(cost)
 ```
 
-that is, for each origin airport, the cost related to reach the destination airport.
+that is, for each origin airport, the unit cost (the price of the ticket), necessary to reach the destination airport.
+
 The second one is related to the flows:
 
 ```{r}
@@ -37,9 +38,9 @@ str(flow)
 that is, for each origin airport, the estimated number of passengers that want to reach the destination airport.
 
 
-We want to minimize the total cost of the optimal solution, to determine which could be the three more convenient hubs for the 25 airports.
+We want to minimize the total cost of the optimal solution, given by the product of the flows muliplied by the unit cost, to determine which could be the three more convenient hubs for the 25 airports.
 
-This is the fitness function:
+We define the fitness function consequently:
 
 ```{r}
 airline_hub <- function(solution,input) {
@@ -55,7 +56,13 @@ airline_hub <- function(solution,input) {
 }
 ```
 
-This function will receive, as input, the cost matrix and the flow matrix. The current solution, to be evaluated, will select the three columns corresponding to the three hubs, and calculate the sum of the costs for each origin airport to reach the hub, multiplied by the flows for each origin airport to reach the hub,  selecting the minimum. The minus sign is due to the fact that we want to minimize the value of the objective function.
+Some remarks:
+
+1. this function will receive, as input, the cost matrix and the flow matrix; 
+
+2. to evaluate the current solution, in both matrices (cost and flow) we select the three columns corresponding to the three hubs, and calculate the sum of the total costs for each origin airport to reach the candidate hub, selecting the minimum (the minus sign is due to the fact that we want to minimize the value of the objective function);
+
+3. a penalization is introduced to eliminate the solutions with a number of hubs lower than three.
 
 We can now proceed with the optimization. Note that we set the value of the genome equal to 3 (the number of the desired hubs), and the number of the values to be attributed to each element of the genome is set equal to the number of the airports (25).
 
@@ -67,7 +74,7 @@ nvalues_sol = 25
 set.seed(4321)
 solutionQGA <- QGA(
                 popsize,
-                generation_max = 500,
+                generation_max = 200,
                 nvalues_sol,
                 Genome,
                 thetainit = 3.1415926535 * 0.025,
