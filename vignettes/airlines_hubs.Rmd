@@ -10,9 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(QGA)
 ```
 
-In this example, we show how, With the Quantum Genetic Algorithm, it is possible to determine the most convenient hubs given a set of 25 USA airports.
-
-### Input data
+In this example, we show how, With the Quantum Genetic Algorithm, it is possible to determine the most convenient hubs, given a set of 25 USA airports.
 
 As input data, we consider the 25 airports, with their geographical coordinates:
 
@@ -27,6 +25,7 @@ In addition, we get two square matrices. The first one contains the costs:
 cost <- read.csv("Airlines_cost.csv",header=F)
 str(cost)
 ```
+
 that is, for each origin airport, the cost related to reach the destination airport.
 The second one is related to the flows:
 
@@ -34,37 +33,41 @@ The second one is related to the flows:
 flow <- read.csv("Airlines_flow.csv",header=F)
 str(flow)
 ```
-that is, for each origin airport, the estimated number of passenger that want to reach the destination airport.
 
-### Optimization by costs minimization
+that is, for each origin airport, the estimated number of passengers that want to reach the destination airport.
 
-As a first exercise, we will use the cost to determine which could be the 3 more convenient hubs for the 25 airports.
+
+We want to minimize the total cost of the optimal solution, to determine which could be the three more convenient hubs for the 25 airports.
 
 This is the fitness function:
 
 ```{r}
 airline_hub <- function(solution,input) {
-  obj <- -sum(apply(input[,solution], 1, min))
-  # Penalization
-  # if (length(table(solution)) < length(solution)) {
-  #  obj <- sum(input)
-  # }
+  cost <- input$cost
+  flow <- input$flow
+  penalization <- sum(cost)*0.0005
+  obj <- -sum(apply(cost[,solution] * flow[,solution], 1, min)) / sum(cost)
+  if (length(table(solution)) < length(solution)) {
+    obj <- obj - penalization
+  }
+  # cat("\nSolution:",solution,"  obj: ",obj)
   return(obj)
 }
 ```
 
-This function will receive, as input, the cost matrix. The current solution, to be evaluated, will select the three columns corresponding to the three hubs, and calculate the sum of the costs for each origin airport to reach the hub, selecting the minimum. The minus sign is due to the fact that we want to minimize the value of the objective function.
+This function will receive, as input, the cost matrix and the flow matrix. The current solution, to be evaluated, will select the three columns corresponding to the three hubs, and calculate the sum of the costs for each origin airport to reach the hub, multiplied by the flows for each origin airport to reach the hub,  selecting the minimum. The minus sign is due to the fact that we want to minimize the value of the objective function.
 
 We can now proceed with the optimization. Note that we set the value of the genome equal to 3 (the number of the desired hubs), and the number of the values to be attributed to each element of the genome is set equal to the number of the airports (25).
 
 ```{r}
+input <- list(cost=cost,flow=flow)
 popsize = 20
 Genome = 3 # Number of desired hubs
 nvalues_sol = 25
 set.seed(4321)
 solutionQGA <- QGA(
                 popsize,
-                generation_max = 200,
+                generation_max = 500,
                 nvalues_sol,
                 Genome,
                 thetainit = 3.1415926535 * 0.025,
@@ -78,8 +81,9 @@ solutionQGA <- QGA(
                 progress = FALSE,
                 verbose = FALSE,
                 eval_fitness = airline_hub,
-                eval_func_inputs = cost)
+                eval_func_inputs = input)
 ```
+
 The found solution:
 
 ```{r}
@@ -130,80 +134,6 @@ gg <- gg + geom_point(data = cities, aes(x = Long, y = Lat), color = "blue", siz
 gg <- gg + geom_point(data = cities[solution,], aes(x = Long, y = Lat), color = "red", size = 3)
 gg <- gg + geom_text(data = cities, aes(x = Long, y = Lat, label = City), hjust = 1, vjust = 1, size = 3)
 gg <- gg + ggtitle("Airlines hubs (cost minimization)") +
-  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
-print(gg)
-```
-
-
-### Optimization by flows maximization
-
-Alternatively, we can use the flows instead of the cost.
-
-To do that, we do not need to modify the fitness function, even if now we want to maximize the flows instead than minimizing the cost. We just need to consider the negative values of the flows:
-
-```{r}
-set.seed(4321)
-solutionQGA <- QGA(
-                popsize,
-                generation_max = 200,
-                nvalues_sol,
-                Genome,
-                thetainit = 3.1415926535 * 0.025,
-                thetaend = 3.1415926535 * 0.005,
-                pop_mutation_rate_init = 3/(popsize + 1),
-                pop_mutation_rate_end = 1/(popsize + 1),
-                mutation_rate_init = 3/(Genome + 1),
-                mutation_rate_end = 1/(Genome + 1),
-                mutation_flag = TRUE,
-                plotting = FALSE,
-                progress = FALSE,
-                verbose = FALSE,
-                eval_fitness = airline_hub,
-                eval_func_inputs = -flow)
-```
-
-
-The solution is:
-
-```{r}
-solution <- solutionQGA[[1]]
-cities$City[solution]
-sol <- -flow[,solution] 
-find_min_column <- function(row) {
-  which.min(row)
-}
-min_column_vector <- apply(sol, 1, find_min_column)
-print(min_column_vector)
-cities$Hub <- cities$City[solution][min_column_vector]
-print(cities[,c(2,5)])
-```
-```{r message=FALSE, warning=FALSE}
-connections <- cities %>%
-  left_join(cities %>% select(City, Lat, Long), by = c("Hub" = "City")) %>%
-  rename(Hub_Lat = Lat.y, Hub_Long = Long.y) %>%
-  select(City, Lat = Lat.x, Long = Long.x, Hub, Hub_Lat, Hub_Long)
-hubs <- unique(cities$Hub)
-hub_connections <- expand.grid(Hub1 = hubs, Hub2 = hubs, stringsAsFactors = FALSE) %>%
-  filter(Hub1 < Hub2) %>%  # Evita duplicati e auto-connessioni
-  left_join(cities %>% select(City, Lat, Long), by = c("Hub1" = "City")) %>%
-  rename(Lat1 = Lat, Long1 = Long) %>%
-  left_join(cities %>% select(City, Lat, Long), by = c("Hub2" = "City")) %>%
-  rename(Lat2 = Lat, Long2 = Long)
-usa_map <- map_data("state")
-gg <- ggplot() +
-  geom_polygon(data = usa_map, aes(x = long, y = lat, group = group), fill = "white", color = "black") +
-  coord_fixed(1.3) +
-  xlim(-125, -66) + ylim(25, 50)
-gg <- gg + geom_segment(data = connections, 
-                        aes(x = Long, y = Lat, xend = Hub_Long, yend = Hub_Lat),
-                        color = "blue", alpha = 0.5, size = 1)
-gg <- gg + geom_segment(data = hub_connections,
-                        aes(x = Long1, y = Lat1, xend = Long2, yend = Lat2),
-                        color = "red", alpha = 0.7, size = 1)
-gg <- gg + geom_point(data = cities, aes(x = Long, y = Lat), color = "blue", size = 2)
-gg <- gg + geom_point(data = cities[solution,], aes(x = Long, y = Lat), color = "red", size = 3)
-gg <- gg + geom_text(data = cities, aes(x = Long, y = Lat, label = City), hjust = 1, vjust = 1, size = 3)
-gg <- gg + ggtitle("Airlines hubs (flows maximization)") +
   theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
 print(gg)
 ```
