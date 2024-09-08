@@ -2,15 +2,31 @@
 title: "Airline hubs"
 author: "Giulio Barcaroli"
 date: "`r Sys.Date()`"
-output: html_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Airline hubs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r setup, include = FALSE}
+options(width = 999)
+knitr::opts_chunk$set(fig.width=6, fig.height=4,
+  collapse = TRUE,
+  comment = "#>"
+)
+# if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
+# library(bookdown)
 library(QGA)
 ```
 
+# Airline hubs
+
 In this example, we show how, With the Quantum Genetic Algorithm, it is possible to determine the most convenient hubs, given a set of 25 USA airports.
+
+## Prepare data 
 
 As input data, we consider the 25 airports, with their geographical coordinates:
 
@@ -37,6 +53,7 @@ str(flow)
 
 that is, for each origin airport, the estimated number of passengers that want to reach the destination airport.
 
+## Optimization
 
 We want to minimize the total cost of the optimal solution, given by the product of the flows muliplied by the unit cost, to determine which could be the three more convenient hubs for the 25 airports.
 
@@ -90,6 +107,9 @@ solutionQGA <- QGA(
                 eval_fitness = airline_hub,
                 eval_func_inputs = input)
 ```
+
+
+## Analysis of the solution
 
 The found solution:
 

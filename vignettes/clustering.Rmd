@@ -1,0 +1,127 @@
+---
+title: "Clustering"
+author: "Giulio Barcaroli"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: QGA.bib
+vignette: >
+  %\VignetteIndexEntry{Clustering}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
+---
+
+
+```{r setup, include = FALSE}
+options(width = 999)
+knitr::opts_chunk$set(fig.width=6, fig.height=4,
+  collapse = TRUE,
+  comment = "#>"
+)
+# if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
+# library(bookdown)
+library(QGA)
+```
+
+
+# Clustering
+
+"Cluster analysis or clustering is the task of grouping a set of objects in such a way that objects in the same group (called a cluster) are more similar (in some specific sense defined by the analyst) to each other than to those in other groups (clusters)." (from Wikipedia).
+In our study, we consider the multivariate case, where clustering is done considering more than one variable.
+
+## Fitness evaluation
+
+The following fitness evaluation function is defined:
+
+```{r}
+clustering <- function(solution, eval_func_inputs) {
+  maxvalue <- 5
+  penalfactor <- 2
+  df <- eval_func_inputs[[1]]
+  vars <- eval_func_inputs[[2]]
+  # Fitness function
+  fitness <- 0
+  for (v in vars) {
+    cv <- tapply(df[,v],solution,FUN=sd) / tapply(df[,v],solution,FUN=mean)
+    cv <- ifelse(is.na(cv),maxvalue,cv)
+    fitness <- fitness + sum(cv)
+  }
+  # Penalization on unbalanced clusters
+  b <- table(solution)/nrow(df)
+  fitness <- fitness + penalfactor * (sum(abs(b - c(rep(1/(length(b)),length(b))))))
+  return(-fitness)
+}
+```
+
+This function receives as input parameters:
+
+* solution (the current solution to be evaluated)
+* eval_func_inputs (a list including the dataframe to be analyzed, and the set of variables to be considered in the clustering)
+
+## Prepare data 
+
+We make use of the "iris" dataset:
+
+```{r}
+data(iris)
+vars <- colnames(iris)[1:4]
+vars
+```
+The above four variables will be used in clustering.
+
+## Optimization
+
+We define the Genome parameter as the number of entries in the "iris" dataset.
+The number of values is set equal to the 3.
+This means that each solution is a vector of 150 elements, each one with an assigned value from 1 to 3: each couple element/value indicates which entry (element) is assigned to which cluster (value).
+
+```{r, eval=FALSE}
+nclust = 3
+popsize = 20
+Genome = nrow(iris)
+set.seed(1234)
+solutionQGA <- QGA(popsize,
+                generation_max = 1500,
+                nvalues_sol = nclust,
+                Genome,
+                thetainit = 3.1415926535 * 0.1,
+                thetaend = 3.1415926535 * 0.05,
+                pop_mutation_rate_init = 1/(popsize + 1),
+                pop_mutation_rate_end = 1/(popsize + 1),
+                mutation_rate_init = 1/(Genome + 1),
+                mutation_rate_end = 1/(Genome + 1),
+                mutation_flag = TRUE,
+                plotting = FALSE,
+                verbose = FALSE,
+                progress = FALSE,
+                eval_fitness = clustering,
+                eval_func_inputs = list(iris, vars))
+```
+
+```{r, eval=TRUE, echo=FALSE, include=FALSE}
+load("CLUSTsolution.RData")
+```
+
+
+## Analysis of the solution
+
+
+```{r}
+QGA:::plot_Output(CLUSTsolution[[2]])
+```
+
+The plot indicates that the number of iterations was enough to obtain a solution that is likely to be no further improved.
+
+```{r}
+solution <- CLUSTsolution[[1]]
+table(solution)
+```
+We have 3 perfectly balanced clusters. 
+
+We can try to understand the quality of these clusters by comparing them to the "Species" variable in the dataset:
+
+```{r}
+iris$cluster <- solution
+xtabs( ~ Species + cluster, data=iris)
+```
+It seems that the cluster values can predict quite well the Species of the iris flowers, with only 10 misclassifications out of 150.

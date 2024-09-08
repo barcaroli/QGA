@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Giulio Barcaroli" />
+
+<meta name="date" content="2024-09-08" />
+
+<title>Clustering</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Clustering</h1>
+<h4 class="author">Giulio Barcaroli</h4>
+<h4 class="date">2024-09-08</h4>
+
+
+
+<div id="clustering" class="section level1">
+<h1>Clustering</h1>
+<p>“Cluster analysis or clustering is the task of grouping a set of
+objects in such a way that objects in the same group (called a cluster)
+are more similar (in some specific sense defined by the analyst) to each
+other than to those in other groups (clusters).” (from Wikipedia). In
+our study, we consider the multivariate case, where clustering is done
+considering more than one variable.</p>
+<div id="fitness-evaluation" class="section level2">
+<h2>Fitness evaluation</h2>
+<p>The following fitness evaluation function is defined:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>clustering <span class="ot">&lt;-</span> <span class="cf">function</span>(solution, eval_func_inputs) {</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  maxvalue <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  penalfactor <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  df <span class="ot">&lt;-</span> eval_func_inputs[[<span class="dv">1</span>]]</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  vars <span class="ot">&lt;-</span> eval_func_inputs[[<span class="dv">2</span>]]</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="co"># Fitness function</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  fitness <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="cf">for</span> (v <span class="cf">in</span> vars) {</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>    cv <span class="ot">&lt;-</span> <span class="fu">tapply</span>(df[,v],solution,<span class="at">FUN=</span>sd) <span class="sc">/</span> <span class="fu">tapply</span>(df[,v],solution,<span class="at">FUN=</span>mean)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>    cv <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(cv),maxvalue,cv)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>    fitness <span class="ot">&lt;-</span> fitness <span class="sc">+</span> <span class="fu">sum</span>(cv)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  }</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="co"># Penalization on unbalanced clusters</span></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  b <span class="ot">&lt;-</span> <span class="fu">table</span>(solution)<span class="sc">/</span><span class="fu">nrow</span>(df)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>  fitness <span class="ot">&lt;-</span> fitness <span class="sc">+</span> penalfactor <span class="sc">*</span> (<span class="fu">sum</span>(<span class="fu">abs</span>(b <span class="sc">-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">/</span>(<span class="fu">length</span>(b)),<span class="fu">length</span>(b))))))</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>  <span class="fu">return</span>(<span class="sc">-</span>fitness)</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>}</span></code></pre></div>
+<p>This function receives as input parameters:</p>
+<ul>
+<li>solution (the current solution to be evaluated)</li>
+<li>eval_func_inputs (a list including the dataframe to be analyzed, and
+the set of variables to be considered in the clustering)</li>
+</ul>
+</div>
+<div id="prepare-data" class="section level2">
+<h2>Prepare data</h2>
+<p>We make use of the “iris” dataset:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>vars <span class="ot">&lt;-</span> <span class="fu">colnames</span>(iris)[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>]</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>vars</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Sepal.Length&quot; &quot;Sepal.Width&quot;  &quot;Petal.Length&quot; &quot;Petal.Width&quot;</span></span></code></pre></div>
+<p>The above four variables will be used in clustering.</p>
+</div>
+<div id="optimization" class="section level2">
+<h2>Optimization</h2>
+<p>We define the Genome parameter as the number of entries in the “iris”
+dataset. The number of values is set equal to the 3. This means that
+each solution is a vector of 150 elements, each one with an assigned
+value from 1 to 3: each couple element/value indicates which entry
+(element) is assigned to which cluster (value).</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>nclust <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>popsize <span class="ot">=</span> <span class="dv">20</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>Genome <span class="ot">=</span> <span class="fu">nrow</span>(iris)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>solutionQGA <span class="ot">&lt;-</span> <span class="fu">QGA</span>(popsize,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>                <span class="at">generation_max =</span> <span class="dv">1500</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>                <span class="at">nvalues_sol =</span> nclust,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>                Genome,</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>                <span class="at">thetainit =</span> <span class="fl">3.1415926535</span> <span class="sc">*</span> <span class="fl">0.1</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>                <span class="at">thetaend =</span> <span class="fl">3.1415926535</span> <span class="sc">*</span> <span class="fl">0.05</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>                <span class="at">pop_mutation_rate_init =</span> <span class="dv">1</span><span class="sc">/</span>(popsize <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>                <span class="at">pop_mutation_rate_end =</span> <span class="dv">1</span><span class="sc">/</span>(popsize <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>                <span class="at">mutation_rate_init =</span> <span class="dv">1</span><span class="sc">/</span>(Genome <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>                <span class="at">mutation_rate_end =</span> <span class="dv">1</span><span class="sc">/</span>(Genome <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>                <span class="at">mutation_flag =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>                <span class="at">plotting =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>                <span class="at">verbose =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>                <span class="at">progress =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>                <span class="at">eval_fitness =</span> clustering,</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>                <span class="at">eval_func_inputs =</span> <span class="fu">list</span>(iris, vars))</span></code></pre></div>
+</div>
+<div id="analysis-of-the-solution" class="section level2">
+<h2>Analysis of the solution</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>QGA<span class="sc">:::</span><span class="fu">plot_Output</span>(CLUSTsolution[[<span class="dv">2</span>]])</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>The plot indicates that the number of iterations was enough to obtain
+a solution that is likely to be no further improved.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>solution <span class="ot">&lt;-</span> CLUSTsolution[[<span class="dv">1</span>]]</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">table</span>(solution)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; solution</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt;  1  2  3 </span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; 50 50 50</span></span></code></pre></div>
+<p>We have 3 perfectly balanced clusters.</p>
+<p>We can try to understand the quality of these clusters by comparing
+them to the “Species” variable in the dataset:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>iris<span class="sc">$</span>cluster <span class="ot">&lt;-</span> solution</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">xtabs</span>( <span class="sc">~</span> Species <span class="sc">+</span> cluster, <span class="at">data=</span>iris)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt;             cluster</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; Species       1  2  3</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt;   setosa      0  0 50</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt;   versicolor 45  5  0</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;   virginica   5 45  0</span></span></code></pre></div>
+<p>It seems that the cluster values can predict quite well the Species
+of the iris flowers, with only 10 misclassifications out of 150.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

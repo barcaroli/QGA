@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Giulio Barcaroli" />
+
+<meta name="date" content="2024-09-08" />
+
+<title>Traveller Salesman</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Traveller Salesman</h1>
+<h4 class="author">Giulio Barcaroli</h4>
+<h4 class="date">2024-09-08</h4>
+
+
+
+<div id="travelling-salesman" class="section level1">
+<h1>Travelling salesman</h1>
+<p>“The travelling salesperson problem, also known as travelling
+salesman problem, asks the following question:”Given a list of cities
+and the distances between each pair of cities, what is the shortest
+possible route that visits each city exactly once and returns to the
+origin city?” It is an NP-hard problem in combinatorial optimization,
+important in theoretical computer science and operations research.”
+(from Wikipedia).</p>
+<div id="fitness-evaluation" class="section level2">
+<h2>Fitness evaluation</h2>
+<p>The following fitness evaluation function is defined:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>TravellingSalesman <span class="ot">&lt;-</span> <span class="cf">function</span>(solution,distance) {</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  l <span class="ot">=</span> <span class="fl">0.0</span>  </span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(solution)) {</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    l <span class="ot">=</span> l<span class="sc">+</span>distance[solution[i<span class="dv">-1</span>], solution[i]]</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  }</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="co"># Fitness function</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  l <span class="ot">=</span> l <span class="sc">+</span> distance[solution[<span class="dv">1</span>],solution[<span class="fu">length</span>(solution)]]</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="co"># Penalization</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  penal <span class="ot">&lt;-</span> ((<span class="fu">nrow</span>(distance)) <span class="sc">-</span> <span class="fu">length</span>(<span class="fu">table</span>(solution)))<span class="sc">*</span><span class="fu">sum</span>(distance)<span class="sc">/</span><span class="dv">10</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>  cost <span class="ot">&lt;-</span> <span class="sc">-</span>(penal<span class="sc">+</span>l)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="fu">return</span>(cost)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>}</span></code></pre></div>
+<p>This function receives as input parameters:</p>
+<ul>
+<li>solution (the current solution to be evaluated)</li>
+<li>distance (the matrix of distances between the cities to be
+visited)</li>
+</ul>
+</div>
+<div id="prepare-data" class="section level2">
+<h2>Prepare data</h2>
+<p>An external file with a list of cities (names and coordinates) is
+read, and a number of them is selected (here, only 9):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>cities <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;TSP_cities.csv&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>ncities <span class="ot">&lt;-</span> <span class="dv">9</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>cities <span class="ot">&lt;-</span> cities[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span>ncities),]</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>cities</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt;       city     x     y</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 1    Turin  7.68 45.06</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 2    Milan  9.19 45.46</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; 3    Genoa  8.93 44.40</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 4   Venice 12.33 45.43</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 5  Bologna 11.34 44.49</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; 6 Florence 11.25 43.76</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; 7  Pescara 13.95 42.31</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; 8     Rome 12.48 41.89</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; 9   Naples 14.24 40.83</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>distance <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">dist</span>(cities[,<span class="fu">c</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>)]))</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>distance</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;          1        2        3        4        5        6        7        8        9</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; 1 0.000000 1.562082 1.413542 4.664697 3.704119 3.799329 6.846561 5.752295 7.805543</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 2 1.562082 0.000000 1.091421 3.140143 2.358686 2.670880 5.707898 4.854791 6.851233</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 3 1.413542 1.091421 0.000000 3.552591 2.411680 2.406657 5.437693 4.347712 6.398515</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 4 4.664697 3.140143 3.552591 0.000000 1.365174 1.988794 3.515508 3.543177 4.980773</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; 5 3.704119 2.358686 2.411680 1.365174 0.000000 0.735527 3.400662 2.838943 4.669647</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 6 3.799329 2.670880 2.406657 1.988794 0.735527 0.000000 3.064719 2.238258 4.186287</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; 7 6.846561 5.707898 5.437693 3.515508 3.400662 3.064719 0.000000 1.528823 1.508145</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; 8 5.752295 4.854791 4.347712 3.543177 2.838943 2.238258 1.528823 0.000000 2.054556</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; 9 7.805543 6.851233 6.398515 4.980773 4.669647 4.186287 1.508145 2.054556 0.000000</span></span></code></pre></div>
+<p>Here, the distances have been calculated simply as Euclidean
+distances: clearly, in more realistic cases they should be calculated
+based on a road map.</p>
+</div>
+<div id="optimization" class="section level2">
+<h2>Optimization</h2>
+<p>We define the Genome parameter as the number of cities; also the
+number of values is set equal to the number of cities. This means that
+each solution is a vector of 9 elements, each one with an assigned value
+from 1 to 9: each couple element/value indicates from which origin city
+(element) the travelling salesman should go to which destination city
+(value). In this setting, we do not want to introduce the mutation
+operator. Moreover, we want to iterate 1000 times, each time considering
+20 generated solutions.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>popsize <span class="ot">=</span> <span class="dv">20</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>Genome <span class="ot">=</span> <span class="fu">nrow</span>(cities)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>nvalues_sol <span class="ot">=</span> <span class="fu">nrow</span>(cities)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">4321</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>TSPsolution <span class="ot">&lt;-</span> <span class="fu">QGA</span>(popsize,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>                <span class="at">generation_max =</span> <span class="dv">1000</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>                nvalues_sol,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>                Genome,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>                <span class="at">thetainit =</span> <span class="fl">3.1415926535</span> <span class="sc">*</span> <span class="fl">0.01</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>                <span class="at">thetaend =</span> <span class="fl">3.1415926535</span> <span class="sc">*</span> <span class="fl">0.01</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>                <span class="co"># pop_mutation_rate_init = 1/(popsize + 1),</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>                <span class="co"># pop_mutation_rate_end = 1/(popsize + 1),</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>                <span class="co"># mutation_rate_init = 1/(Genome + 1),</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>                <span class="co"># mutation_rate_end = 1/(Genome + 1),</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>                <span class="at">mutation_flag =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>                <span class="at">plotting =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>                <span class="at">verbose =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>                <span class="at">progress =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>                <span class="at">eval_fitness =</span> TravellingSalesman,</span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>                <span class="at">eval_func_inputs =</span> distance)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>QGA<span class="sc">:::</span><span class="fu">plot_Output</span>(TSPsolution[[<span class="dv">2</span>]])</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>The plot indicates that the number of iterations was enough to obtain
+a solution that is likely to be no further improved.</p>
+</div>
+<div id="analysis-of-the-solution" class="section level2">
+<h2>Analysis of the solution</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>solution <span class="ot">&lt;-</span> TSPsolution[[<span class="dv">1</span>]]</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>cities<span class="sc">$</span>city[solution]</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Milan&quot;    &quot;Venice&quot;   &quot;Pescara&quot;  &quot;Naples&quot;   &quot;Rome&quot;     &quot;Florence&quot; &quot;Bologna&quot;  &quot;Genoa&quot;    &quot;Turin&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>cities_tsp <span class="ot">&lt;-</span> cities[solution,]</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co"># plot(y~x,data=cities_tsp)</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co"># polygon(cities_tsp$x,cities_tsp$y,border=&quot;red&quot;)</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co"># text(x = cities_tsp$x, y = cities_tsp$y, labels = cities_tsp$city, cex=.75)</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co"># title(&quot;Best path&quot;)</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(maps)) <span class="fu">install.packages</span>(<span class="st">&quot;maps&quot;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; Caricamento del pacchetto richiesto: maps</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(tidyverse)) <span class="fu">install.packages</span>(<span class="st">&quot;tidyverse&quot;</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; Caricamento del pacchetto richiesto: tidyverse</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; ── Attaching core tidyverse packages ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; ✔ dplyr     1.1.4     ✔ readr     2.1.5</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; ✔ forcats   1.0.0     ✔ stringr   1.5.1</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; ✔ ggplot2   3.5.1     ✔ tibble    3.2.1</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; ✔ lubridate 1.9.3     ✔ tidyr     1.3.1</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; ✔ purrr     1.0.2     </span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; ── Conflicts ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; ✖ dplyr::filter() masks stats::filter()</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; ✖ dplyr::lag()    masks stats::lag()</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; ✖ purrr::map()    masks maps::map()</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(ggplot2)) <span class="fu">install.packages</span>(<span class="st">&quot;ggplot2&quot;</span>)</span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="fu">library</span>(maps)</span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a>italy_map <span class="ot">&lt;-</span> <span class="fu">map_data</span>(<span class="st">&quot;italy&quot;</span>)</span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>lines <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>  <span class="at">x =</span> cities_tsp<span class="sc">$</span>x[<span class="sc">-</span><span class="fu">nrow</span>(cities_tsp)],</span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a>  <span class="at">y =</span> cities_tsp<span class="sc">$</span>y[<span class="sc">-</span><span class="fu">nrow</span>(cities_tsp)],</span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a>  <span class="at">xend =</span> cities_tsp<span class="sc">$</span>x[<span class="sc">-</span><span class="dv">1</span>],</span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a>  <span class="at">yend =</span> cities_tsp<span class="sc">$</span>y[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a>)</span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>gg <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(<span class="at">data =</span> italy_map, <span class="fu">aes</span>(<span class="at">x =</span> long, <span class="at">y =</span> lat, <span class="at">group =</span> group), </span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a>               <span class="at">fill =</span> <span class="st">&quot;white&quot;</span>, <span class="at">color =</span> <span class="st">&quot;black&quot;</span>) <span class="sc">+</span></span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="at">data =</span> lines, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">xend =</span> xend, <span class="at">yend =</span> yend),</span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;red&quot;</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> cities_tsp, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y), <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> cities_tsp, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> city), </span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a>            <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">vjust =</span> <span class="dv">0</span>, <span class="at">nudge_x =</span> <span class="fl">0.1</span>, <span class="at">nudge_y =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a>  <span class="fu">coord_fixed</span>(<span class="fl">1.3</span>) <span class="sc">+</span></span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Best itinerary&quot;</span>) <span class="sc">+</span></span>
+<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">16</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">6</span>, <span class="dv">19</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">36</span>, <span class="dv">47</span>)</span>
+<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a><span class="co">#&gt; Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
+<span id="cb6-50"><a href="#cb6-50" tabindex="-1"></a><span class="co">#&gt; ℹ Please use `linewidth` instead.</span></span>
+<span id="cb6-51"><a href="#cb6-51" tabindex="-1"></a><span class="co">#&gt; This warning is displayed once every 8 hours.</span></span>
+<span id="cb6-52"><a href="#cb6-52" tabindex="-1"></a><span class="co">#&gt; Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</span></span>
+<span id="cb6-53"><a href="#cb6-53" tabindex="-1"></a><span class="fu">print</span>(gg)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="warning" class="section level2">
+<h2>warning</h2>
+<p>This seems to be a reasonable solution, but it has to be noted that,
+with a higher number of cities, it becomes more and more difficult to
+find acceptable solutions. For instance, with 10 cities the algorithm
+gives unreasonable solutions. This depends on the fact that the
+efficiency of the quantum GA decreases with the number of the possible
+values given to each element of the genome (parameter n_val_sol). In
+that case, traditional genetic algorithms (GA, genalg, etc) can be more
+efficient.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
