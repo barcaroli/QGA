@@ -14,7 +14,7 @@ vignette: >
 
 ```{r setup, include = FALSE}
 options(width = 999)
-knitr::opts_chunk$set(fig.width=6, fig.height=4,
+knitr::opts_chunk$set(fig.width=8, fig.height=6,
   collapse = TRUE,
   comment = "#>"
 )
@@ -121,10 +121,11 @@ The plot indicates that the number of iterations was enough to obtain a solution
 solution <- TSPsolution[[1]]
 cities$city[solution]
 cities_tsp <- cities[solution,]
-# plot(y~x,data=cities_tsp)
-# polygon(cities_tsp$x,cities_tsp$y,border="red")
-# text(x = cities_tsp$x, y = cities_tsp$y, labels = cities_tsp$city, cex=.75)
-# title("Best path")
+```
+
+
+
+```{r message=F, warning=FALSE}
 # Plot
 if (!require(maps)) install.packages("maps")
 if (!require(tidyverse)) install.packages("tidyverse")
@@ -155,6 +156,8 @@ gg <- ggplot() +
 print(gg)
 ```
 
-## warning
+## Warning
 
-This seems to be a reasonable solution, but it has to be noted that, with a higher number of cities, it becomes more and more difficult to find acceptable solutions. For instance, with 10 cities the algorithm gives unreasonable solutions. This depends on the fact that the efficiency of the quantum GA decreases with the number of the possible values given to each element of the genome (parameter n_val_sol). In that case, traditional genetic algorithms (GA, genalg, etc) can be more efficient.
+This seems to be a reasonable solution, but it has to be noted that, with a higher number of cities, it becomes more and more difficult to find acceptable solutions. For instance, with 10 cities the algorithm gives unreasonable solutions. 
+
+This depends on the fact that the efficiency of the quantum GA decreases with the number of the possible values given to each element of the genome (parameter n_val_sol). In that case, traditional genetic algorithms (GA, genalg, etc) can be more efficient.
