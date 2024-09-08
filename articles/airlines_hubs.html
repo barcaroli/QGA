@@ -56,7 +56,13 @@
       <a href="../articles/airlines_hubs.html">Airline hubs</a>
     </li>
     <li>
+      <a href="../articles/clustering.html">Clustering</a>
+    </li>
+    <li>
       <a href="../articles/functionMax.html">Finding the maximum of a function with QGA</a>
+    </li>
+    <li>
+      <a href="../articles/TSP.html">Traveller Salesman</a>
     </li>
   </ul>
 </li>
@@ -85,7 +91,7 @@
                         <h4 data-toc-skip class="author">Giulio
 Barcaroli</h4>
             
-            <h4 data-toc-skip class="date">2024-09-07</h4>
+            <h4 data-toc-skip class="date">2024-09-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/barcaroli/QGA/blob/main/vignettes/airlines_hubs.Rmd" class="external-link"><code>vignettes/airlines_hubs.Rmd</code></a></small>
       <div class="hidden name"><code>airlines_hubs.Rmd</code></div>
@@ -94,110 +100,120 @@ Barcaroli</h4>
 
     
     
+<div class="section level2">
+<h2 id="airline-hubs">Airline hubs<a class="anchor" aria-label="anchor" href="#airline-hubs"></a>
+</h2>
 <p>In this example, we show how, With the Quantum Genetic Algorithm, it
 is possible to determine the most convenient hubs, given a set of 25 USA
 airports.</p>
+<div class="section level3">
+<h3 id="prepare-data">Prepare data<a class="anchor" aria-label="anchor" href="#prepare-data"></a>
+</h3>
 <p>As input data, we consider the 25 airports, with their geographical
 coordinates:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cities</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"Airlines_cities.csv"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cities</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##    ID City     Lat      Long</span></span>
-<span><span class="co">## 1   1  ATL 33.7490  -84.3880</span></span>
-<span><span class="co">## 2   2  BWI 37.2904  -76.6122</span></span>
-<span><span class="co">## 3   3  BOS 42.3601  -71.0589</span></span>
-<span><span class="co">## 4   4  ORD 41.8781  -87.6298</span></span>
-<span><span class="co">## 5   5  CVG 39.1031  -84.5120</span></span>
-<span><span class="co">## 6   6  CLE 41.4993  -81.6944</span></span>
-<span><span class="co">## 7   7  DFW 32.7767  -96.7970</span></span>
-<span><span class="co">## 8   8  DEN 39.7392 -104.9903</span></span>
-<span><span class="co">## 9   9  DET 43.7314  -83.0458</span></span>
-<span><span class="co">## 10 10  IAH 29.7604  -95.3698</span></span>
-<span><span class="co">## 11 11  MCI 39.0997  -94.5786</span></span>
-<span><span class="co">## 12 12  LAX 34.0522 -118.2437</span></span>
-<span><span class="co">## 13 13  MEM 35.1495  -90.0490</span></span>
-<span><span class="co">## 14 14  MIA 25.7617  -80.1918</span></span>
-<span><span class="co">## 15 15  MSP 44.9778  -93.2650</span></span>
-<span><span class="co">## 16 16  MSY 29.9511  -90.0715</span></span>
-<span><span class="co">## 17 17  LGA 40.7128  -74.0060</span></span>
-<span><span class="co">## 18 18  PHL 39.9526  -74.1652</span></span>
-<span><span class="co">## 19 19  PHX 33.4484 -112.0740</span></span>
-<span><span class="co">## 20 20  PIT 39.4406  -77.9959</span></span>
-<span><span class="co">## 21 21  STL 38.6270  -90.1994</span></span>
-<span><span class="co">## 22 22  SFO 37.6213 -122.3790</span></span>
-<span><span class="co">## 23 23  SEA 47.6062 -122.3321</span></span>
-<span><span class="co">## 24 24  TPA 27.9506  -82.4572</span></span>
-<span><span class="co">## 25 25  DCA 35.5072  -76.0369</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cities</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    ID City     Lat      Long</span></span>
+<span><span class="co">#&gt; 1   1  ATL 33.7490  -84.3880</span></span>
+<span><span class="co">#&gt; 2   2  BWI 37.2904  -76.6122</span></span>
+<span><span class="co">#&gt; 3   3  BOS 42.3601  -71.0589</span></span>
+<span><span class="co">#&gt; 4   4  ORD 41.8781  -87.6298</span></span>
+<span><span class="co">#&gt; 5   5  CVG 39.1031  -84.5120</span></span>
+<span><span class="co">#&gt; 6   6  CLE 41.4993  -81.6944</span></span>
+<span><span class="co">#&gt; 7   7  DFW 32.7767  -96.7970</span></span>
+<span><span class="co">#&gt; 8   8  DEN 39.7392 -104.9903</span></span>
+<span><span class="co">#&gt; 9   9  DET 43.7314  -83.0458</span></span>
+<span><span class="co">#&gt; 10 10  IAH 29.7604  -95.3698</span></span>
+<span><span class="co">#&gt; 11 11  MCI 39.0997  -94.5786</span></span>
+<span><span class="co">#&gt; 12 12  LAX 34.0522 -118.2437</span></span>
+<span><span class="co">#&gt; 13 13  MEM 35.1495  -90.0490</span></span>
+<span><span class="co">#&gt; 14 14  MIA 25.7617  -80.1918</span></span>
+<span><span class="co">#&gt; 15 15  MSP 44.9778  -93.2650</span></span>
+<span><span class="co">#&gt; 16 16  MSY 29.9511  -90.0715</span></span>
+<span><span class="co">#&gt; 17 17  LGA 40.7128  -74.0060</span></span>
+<span><span class="co">#&gt; 18 18  PHL 39.9526  -74.1652</span></span>
+<span><span class="co">#&gt; 19 19  PHX 33.4484 -112.0740</span></span>
+<span><span class="co">#&gt; 20 20  PIT 39.4406  -77.9959</span></span>
+<span><span class="co">#&gt; 21 21  STL 38.6270  -90.1994</span></span>
+<span><span class="co">#&gt; 22 22  SFO 37.6213 -122.3790</span></span>
+<span><span class="co">#&gt; 23 23  SEA 47.6062 -122.3321</span></span>
+<span><span class="co">#&gt; 24 24  TPA 27.9506  -82.4572</span></span>
+<span><span class="co">#&gt; 25 25  DCA 35.5072  -76.0369</span></span></code></pre></div>
 <p>In addition, we get two square matrices. The first one contains the
 costs:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cost</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"Airlines_cost.csv"</span>,header<span class="op">=</span><span class="cn">F</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">cost</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## 'data.frame':    25 obs. of  25 variables:</span></span>
-<span><span class="co">##  $ V1 : num  0 577 946 598 374 ...</span></span>
-<span><span class="co">##  $ V2 : num  577 0 370 613 429 ...</span></span>
-<span><span class="co">##  $ V3 : num  946 370 0 858 750 ...</span></span>
-<span><span class="co">##  $ V4 : num  598 613 858 0 255 ...</span></span>
-<span><span class="co">##  $ V5 : num  374 429 750 255 0 ...</span></span>
-<span><span class="co">##  $ V6 : num  560 313 556 311 226 ...</span></span>
-<span><span class="co">##  $ V7 : num  709 1196 1541 790 794 ...</span></span>
-<span><span class="co">##  $ V8 : num  1208 1502 1765 907 1080 ...</span></span>
-<span><span class="co">##  $ V9 : num  604 406 621 237 239 ...</span></span>
-<span><span class="co">##  $ V10: num  695 1242 1603 932 880 ...</span></span>
-<span><span class="co">##  $ V11: num  681 960 1251 406 533 ...</span></span>
-<span><span class="co">##  $ V12: num  1937 2318 2600 1742 1890 ...</span></span>
-<span><span class="co">##  $ V13: num  332 787 1137 486 402 ...</span></span>
-<span><span class="co">##  $ V14: num  593 950 1267 1187 947 ...</span></span>
-<span><span class="co">##  $ V15: num  909 939 1125 346 599 ...</span></span>
-<span><span class="co">##  $ V16: num  426 1000 1368 830 700 ...</span></span>
-<span><span class="co">##  $ V17: num  756 179 190 720 578 ...</span></span>
-<span><span class="co">##  $ V18: num  672.6 96.3 274.3 675.3 512.4 ...</span></span>
-<span><span class="co">##  $ V19: num  1590 2000 2299 1447 1571 ...</span></span>
-<span><span class="co">##  $ V20: num  527 211 494 404 256 ...</span></span>
-<span><span class="co">##  $ V21: num  483 736 1043 256 307 ...</span></span>
-<span><span class="co">##  $ V22: num  2141 2456 2703 1854 2036 ...</span></span>
-<span><span class="co">##  $ V23: num  2184 2340 2504 1733 1967 ...</span></span>
-<span><span class="co">##  $ V24: num  408 844 1189 1006 775 ...</span></span>
-<span><span class="co">##  $ V25: num  540.7 36.5 405.8 592 399.2 ...</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">cost</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 'data.frame':    25 obs. of  25 variables:</span></span>
+<span><span class="co">#&gt;  $ V1 : num  0 577 946 598 374 ...</span></span>
+<span><span class="co">#&gt;  $ V2 : num  577 0 370 613 429 ...</span></span>
+<span><span class="co">#&gt;  $ V3 : num  946 370 0 858 750 ...</span></span>
+<span><span class="co">#&gt;  $ V4 : num  598 613 858 0 255 ...</span></span>
+<span><span class="co">#&gt;  $ V5 : num  374 429 750 255 0 ...</span></span>
+<span><span class="co">#&gt;  $ V6 : num  560 313 556 311 226 ...</span></span>
+<span><span class="co">#&gt;  $ V7 : num  709 1196 1541 790 794 ...</span></span>
+<span><span class="co">#&gt;  $ V8 : num  1208 1502 1765 907 1080 ...</span></span>
+<span><span class="co">#&gt;  $ V9 : num  604 406 621 237 239 ...</span></span>
+<span><span class="co">#&gt;  $ V10: num  695 1242 1603 932 880 ...</span></span>
+<span><span class="co">#&gt;  $ V11: num  681 960 1251 406 533 ...</span></span>
+<span><span class="co">#&gt;  $ V12: num  1937 2318 2600 1742 1890 ...</span></span>
+<span><span class="co">#&gt;  $ V13: num  332 787 1137 486 402 ...</span></span>
+<span><span class="co">#&gt;  $ V14: num  593 950 1267 1187 947 ...</span></span>
+<span><span class="co">#&gt;  $ V15: num  909 939 1125 346 599 ...</span></span>
+<span><span class="co">#&gt;  $ V16: num  426 1000 1368 830 700 ...</span></span>
+<span><span class="co">#&gt;  $ V17: num  756 179 190 720 578 ...</span></span>
+<span><span class="co">#&gt;  $ V18: num  672.6 96.3 274.3 675.3 512.4 ...</span></span>
+<span><span class="co">#&gt;  $ V19: num  1590 2000 2299 1447 1571 ...</span></span>
+<span><span class="co">#&gt;  $ V20: num  527 211 494 404 256 ...</span></span>
+<span><span class="co">#&gt;  $ V21: num  483 736 1043 256 307 ...</span></span>
+<span><span class="co">#&gt;  $ V22: num  2141 2456 2703 1854 2036 ...</span></span>
+<span><span class="co">#&gt;  $ V23: num  2184 2340 2504 1733 1967 ...</span></span>
+<span><span class="co">#&gt;  $ V24: num  408 844 1189 1006 775 ...</span></span>
+<span><span class="co">#&gt;  $ V25: num  540.7 36.5 405.8 592 399.2 ...</span></span></code></pre></div>
 <p>that is, for each origin airport, the unit cost (the price of the
 ticket), necessary to reach the destination airport.</p>
 <p>The second one is related to the flows:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">flow</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"Airlines_flow.csv"</span>,header<span class="op">=</span><span class="cn">F</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">flow</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## 'data.frame':    25 obs. of  25 variables:</span></span>
-<span><span class="co">##  $ V1 : num  0 6469 7629 20036 4690 ...</span></span>
-<span><span class="co">##  $ V2 : num  6469 0 12999 13692 3322 ...</span></span>
-<span><span class="co">##  $ V3 : num  7629 12999 0 35135 5956 ...</span></span>
-<span><span class="co">##  $ V4 : num  20036 13692 35135 0 19094 ...</span></span>
-<span><span class="co">##  $ V5 : num  4690 3322 5956 19094 0 ...</span></span>
-<span><span class="co">##  $ V6 : num  6194 5576 14121 35119 7284 ...</span></span>
-<span><span class="co">##  $ V7 : num  11688 3878 5951 21423 3102 ...</span></span>
-<span><span class="co">##  $ V8 : num  2243 3202 5768 27342 1562 ...</span></span>
-<span><span class="co">##  $ V9 : num  8857 6699 16578 51341 7180 ...</span></span>
-<span><span class="co">##  $ V10: num  7248 4198 4242 15826 1917 ...</span></span>
-<span><span class="co">##  $ V11: num  3559 2454 3365 28537 2253 ...</span></span>
-<span><span class="co">##  $ V12: num  9221 7975 22254 65387 5951 ...</span></span>
-<span><span class="co">##  $ V13: num  10099 1186 1841 12980 1890 ...</span></span>
-<span><span class="co">##  $ V14: num  22866 7443 23665 44097 7097 ...</span></span>
-<span><span class="co">##  $ V15: num  3388 1162 6517 51525 2009 ...</span></span>
-<span><span class="co">##  $ V16: num  9986 5105 3541 14354 1340 ...</span></span>
-<span><span class="co">##  $ V17: num  46618 24817 205088 172895 25303 ...</span></span>
-<span><span class="co">##  $ V18: num  11639 6532 37669 37305 6031 ...</span></span>
-<span><span class="co">##  $ V19: num  1380 806 2885 15418 1041 ...</span></span>
-<span><span class="co">##  $ V20: num  5261 8184 13200 26221 4128 ...</span></span>
-<span><span class="co">##  $ V21: num  5985 3896 7116 42303 5452 ...</span></span>
-<span><span class="co">##  $ V22: num  6731 7333 17165 35303 3344 ...</span></span>
-<span><span class="co">##  $ V23: num  2704 3719 4284 13618 1067 ...</span></span>
-<span><span class="co">##  $ V24: num  12250 2015 8085 17580 4608 ...</span></span>
-<span><span class="co">##  $ V25: num  16132 565 51895 40708 7050 ...</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">flow</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 'data.frame':    25 obs. of  25 variables:</span></span>
+<span><span class="co">#&gt;  $ V1 : num  0 6469 7629 20036 4690 ...</span></span>
+<span><span class="co">#&gt;  $ V2 : num  6469 0 12999 13692 3322 ...</span></span>
+<span><span class="co">#&gt;  $ V3 : num  7629 12999 0 35135 5956 ...</span></span>
+<span><span class="co">#&gt;  $ V4 : num  20036 13692 35135 0 19094 ...</span></span>
+<span><span class="co">#&gt;  $ V5 : num  4690 3322 5956 19094 0 ...</span></span>
+<span><span class="co">#&gt;  $ V6 : num  6194 5576 14121 35119 7284 ...</span></span>
+<span><span class="co">#&gt;  $ V7 : num  11688 3878 5951 21423 3102 ...</span></span>
+<span><span class="co">#&gt;  $ V8 : num  2243 3202 5768 27342 1562 ...</span></span>
+<span><span class="co">#&gt;  $ V9 : num  8857 6699 16578 51341 7180 ...</span></span>
+<span><span class="co">#&gt;  $ V10: num  7248 4198 4242 15826 1917 ...</span></span>
+<span><span class="co">#&gt;  $ V11: num  3559 2454 3365 28537 2253 ...</span></span>
+<span><span class="co">#&gt;  $ V12: num  9221 7975 22254 65387 5951 ...</span></span>
+<span><span class="co">#&gt;  $ V13: num  10099 1186 1841 12980 1890 ...</span></span>
+<span><span class="co">#&gt;  $ V14: num  22866 7443 23665 44097 7097 ...</span></span>
+<span><span class="co">#&gt;  $ V15: num  3388 1162 6517 51525 2009 ...</span></span>
+<span><span class="co">#&gt;  $ V16: num  9986 5105 3541 14354 1340 ...</span></span>
+<span><span class="co">#&gt;  $ V17: num  46618 24817 205088 172895 25303 ...</span></span>
+<span><span class="co">#&gt;  $ V18: num  11639 6532 37669 37305 6031 ...</span></span>
+<span><span class="co">#&gt;  $ V19: num  1380 806 2885 15418 1041 ...</span></span>
+<span><span class="co">#&gt;  $ V20: num  5261 8184 13200 26221 4128 ...</span></span>
+<span><span class="co">#&gt;  $ V21: num  5985 3896 7116 42303 5452 ...</span></span>
+<span><span class="co">#&gt;  $ V22: num  6731 7333 17165 35303 3344 ...</span></span>
+<span><span class="co">#&gt;  $ V23: num  2704 3719 4284 13618 1067 ...</span></span>
+<span><span class="co">#&gt;  $ V24: num  12250 2015 8085 17580 4608 ...</span></span>
+<span><span class="co">#&gt;  $ V25: num  16132 565 51895 40708 7050 ...</span></span></code></pre></div>
 <p>that is, for each origin airport, the estimated number of passengers
 that want to reach the destination airport.</p>
+</div>
+<div class="section level3">
+<h3 id="optimization">Optimization<a class="anchor" aria-label="anchor" href="#optimization"></a>
+</h3>
 <p>We want to minimize the total cost of the optimal solution, given by
 the product of the flows muliplied by the unit cost, to determine which
 could be the three more convenient hubs for the 25 airports.</p>
 <p>We define the fitness function consequently:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">airline_hub</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span>,<span class="va">input</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">cost</span> <span class="op">&lt;-</span> <span class="va">input</span><span class="op">$</span><span class="va">cost</span></span>
 <span>  <span class="va">flow</span> <span class="op">&lt;-</span> <span class="va">input</span><span class="op">$</span><span class="va">flow</span></span>
@@ -226,7 +242,7 @@ number of hubs lower than three.</p></li>
 of the genome equal to 3 (the number of the desired hubs), and the
 number of the values to be attributed to each element of the genome is
 set equal to the number of the airports (25).</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">input</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cost<span class="op">=</span><span class="va">cost</span>,flow<span class="op">=</span><span class="va">flow</span><span class="op">)</span></span>
 <span><span class="va">popsize</span> <span class="op">=</span> <span class="fl">20</span></span>
 <span><span class="va">Genome</span> <span class="op">=</span> <span class="fl">3</span> <span class="co"># Number of desired hubs</span></span>
@@ -248,54 +264,56 @@ set equal to the number of the airports (25).</p>
 <span>                progress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                eval_fitness <span class="op">=</span> <span class="va">airline_hub</span>,</span>
-<span>                eval_func_inputs <span class="op">=</span> <span class="va">input</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## </span></span>
-<span><span class="co">##  *** Best fitness:  -69.59383</span></span></code></pre>
-<p><img src="airlines_hubs_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<span>                eval_func_inputs <span class="op">=</span> <span class="va">input</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  *** Best fitness:  -69.59383</span></span></code></pre></div>
+<p><img src="airlines_hubs_files/figure-html/unnamed-chunk-5-1.png" width="576"></p>
+</div>
+<div class="section level3">
+<h3 id="analysis-of-the-solution">Analysis of the solution<a class="anchor" aria-label="anchor" href="#analysis-of-the-solution"></a>
+</h3>
 <p>The found solution:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solutionQGA</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">cities</span><span class="op">$</span><span class="va">City</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "MEM" "LAX" "PHL"</span></span></code></pre>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sol</span> <span class="op">&lt;-</span> <span class="va">cost</span><span class="op">[</span>,<span class="va">solution</span><span class="op">]</span> </span>
+<span><span class="va">cities</span><span class="op">$</span><span class="va">City</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span></span>
+<span><span class="co">#&gt; [1] "MEM" "LAX" "PHL"</span></span>
+<span><span class="va">sol</span> <span class="op">&lt;-</span> <span class="va">cost</span><span class="op">[</span>,<span class="va">solution</span><span class="op">]</span> </span>
 <span><span class="va">find_min_column</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">row</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.min</a></span><span class="op">(</span><span class="va">row</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">min_column_vector</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sol</span>, <span class="fl">1</span>, <span class="va">find_min_column</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">min_column_vector</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##  [1] 1 3 3 1 1 3 1 2 3 1 1 2 1 1 1 1 3 3 2 3 1 2 2 1 3</span></span></code></pre>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cities</span><span class="op">$</span><span class="va">Hub</span> <span class="op">&lt;-</span> <span class="va">cities</span><span class="op">$</span><span class="va">City</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span><span class="op">[</span><span class="va">min_column_vector</span><span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cities</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">5</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##    City Hub</span></span>
-<span><span class="co">## 1   ATL MEM</span></span>
-<span><span class="co">## 2   BWI PHL</span></span>
-<span><span class="co">## 3   BOS PHL</span></span>
-<span><span class="co">## 4   ORD MEM</span></span>
-<span><span class="co">## 5   CVG MEM</span></span>
-<span><span class="co">## 6   CLE PHL</span></span>
-<span><span class="co">## 7   DFW MEM</span></span>
-<span><span class="co">## 8   DEN LAX</span></span>
-<span><span class="co">## 9   DET PHL</span></span>
-<span><span class="co">## 10  IAH MEM</span></span>
-<span><span class="co">## 11  MCI MEM</span></span>
-<span><span class="co">## 12  LAX LAX</span></span>
-<span><span class="co">## 13  MEM MEM</span></span>
-<span><span class="co">## 14  MIA MEM</span></span>
-<span><span class="co">## 15  MSP MEM</span></span>
-<span><span class="co">## 16  MSY MEM</span></span>
-<span><span class="co">## 17  LGA PHL</span></span>
-<span><span class="co">## 18  PHL PHL</span></span>
-<span><span class="co">## 19  PHX LAX</span></span>
-<span><span class="co">## 20  PIT PHL</span></span>
-<span><span class="co">## 21  STL MEM</span></span>
-<span><span class="co">## 22  SFO LAX</span></span>
-<span><span class="co">## 23  SEA LAX</span></span>
-<span><span class="co">## 24  TPA MEM</span></span>
-<span><span class="co">## 25  DCA PHL</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">min_column_vector</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] 1 3 3 1 1 3 1 2 3 1 1 2 1 1 1 1 3 3 2 3 1 2 2 1 3</span></span>
+<span><span class="va">cities</span><span class="op">$</span><span class="va">Hub</span> <span class="op">&lt;-</span> <span class="va">cities</span><span class="op">$</span><span class="va">City</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span><span class="op">[</span><span class="va">min_column_vector</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cities</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">5</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    City Hub</span></span>
+<span><span class="co">#&gt; 1   ATL MEM</span></span>
+<span><span class="co">#&gt; 2   BWI PHL</span></span>
+<span><span class="co">#&gt; 3   BOS PHL</span></span>
+<span><span class="co">#&gt; 4   ORD MEM</span></span>
+<span><span class="co">#&gt; 5   CVG MEM</span></span>
+<span><span class="co">#&gt; 6   CLE PHL</span></span>
+<span><span class="co">#&gt; 7   DFW MEM</span></span>
+<span><span class="co">#&gt; 8   DEN LAX</span></span>
+<span><span class="co">#&gt; 9   DET PHL</span></span>
+<span><span class="co">#&gt; 10  IAH MEM</span></span>
+<span><span class="co">#&gt; 11  MCI MEM</span></span>
+<span><span class="co">#&gt; 12  LAX LAX</span></span>
+<span><span class="co">#&gt; 13  MEM MEM</span></span>
+<span><span class="co">#&gt; 14  MIA MEM</span></span>
+<span><span class="co">#&gt; 15  MSP MEM</span></span>
+<span><span class="co">#&gt; 16  MSY MEM</span></span>
+<span><span class="co">#&gt; 17  LGA PHL</span></span>
+<span><span class="co">#&gt; 18  PHL PHL</span></span>
+<span><span class="co">#&gt; 19  PHX LAX</span></span>
+<span><span class="co">#&gt; 20  PIT PHL</span></span>
+<span><span class="co">#&gt; 21  STL MEM</span></span>
+<span><span class="co">#&gt; 22  SFO LAX</span></span>
+<span><span class="co">#&gt; 23  SEA LAX</span></span>
+<span><span class="co">#&gt; 24  TPA MEM</span></span>
+<span><span class="co">#&gt; 25  DCA PHL</span></span></code></pre></div>
 <p>We can plot them on a map:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"tidyverse"</span>, dependencies<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ggplot2"</span>, dependencies<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va">maps</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"maps"</span>, dependencies<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
@@ -330,7 +348,9 @@ set equal to the number of the airports (25).</p>
 <span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="va">gg</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Airlines hubs (cost minimization)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span>, size <span class="op">=</span> <span class="fl">16</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gg</span><span class="op">)</span></span></code></pre></div>
-<p><img src="airlines_hubs_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="airlines_hubs_files/figure-html/unnamed-chunk-7-1.png" width="576"></p>
+</div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
