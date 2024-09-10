@@ -6,22 +6,20 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantum Genetic Algorithm • QGA</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
 <meta property="og:title" content="Quantum Genetic Algorithm">
-<meta property="og:description" content="Function that implements the Quantum Genetic Algorithm, first proposed by Han and Kim in 2000. This is an R implementation of the python application developed by Lahoz-Beltra (&lt;https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms&gt;). Each optimization problem is represented as a maximization one, where each solution is a sequence of (qu)bits. Following the quantum paradigm, these qubits are in a superposition state: when measuring them, they collapse in a 0 or 1 state. After measurement, the fitness of the solution is calculated as in usual genetic algorithms. The evolution at each iteration is oriented by the application of two quantum gates to the amplitudes of the qubits: (1) a rotation gate (always); (2) a Pauli-X gate (optionally). The rotation is based on the theta angle values: higher values allow a quicker evolution, and lower values avoid local maxima. The Pauli-X gate is equivalent to the classical mutation operator and determines the swap between alfa and beta amplitudes of a given qubit. The package has been developed in such a way as to permit a complete separation between the engine, and the particular problem subject to combinatorial optimization.">
+<meta property="og:description" content="Function that implements the Quantum Genetic Algorithm, first proposed by Han and Kim in 2000. This is an R implementation of the python application developed by Lahoz-Beltra  (&lt;https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms&gt;). Each optimization problem is represented as a maximization one, where each solution is a sequence of (qu)bits. Following the quantum paradigm, these qubits are in a superposition state: when measuring them, they collapse in a 0 or 1 state. After measurement, the fitness of the solution is calculated as in usual genetic algorithms. The evolution at each iteration is oriented by the application of two quantum gates to the amplitudes of the qubits: (1) a rotation gate (always); (2) a Pauli-X gate (optionally). The rotation is based on the theta angle values: higher values allow a quicker evolution, and lower values avoid local maxima. The Pauli-X gate is equivalent to the classical mutation operator and determines the swap between alfa and beta amplitudes of a given qubit. The package has been developed in such a way as to permit a complete separation between the engine, and the particular problem subject to combinatorial optimization. ">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
-    
-
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -34,12 +32,18 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">QGA</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
+<li>
+  <a href="index.html">
+    <span class="fas fa-home fa-lg"></span>
+     
+  </a>
+</li>
 <li>
   <a href="articles/QGA.html">Get started</a>
 </li>
@@ -57,6 +61,9 @@
       <a href="articles/airlines_hubs.html">Airline hubs</a>
     </li>
     <li>
+      <a href="articles/BestStratification.html">Best stratification of a sampling frame</a>
+    </li>
+    <li>
       <a href="articles/clustering.html">Clustering</a>
     </li>
     <li>
@@ -70,7 +77,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/barcaroli/QGA/" class="external-link">
+  <a href="https://github.com/barcaroli/QGA/">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -87,96 +94,114 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div class="section level1">
-<div class="page-header"><h1 id="qga-quantum-genetic-algorithm-r-package">QGA (Quantum Genetic Algorithm) R package<a class="anchor" aria-label="anchor" href="#qga-quantum-genetic-algorithm-r-package"></a>
-</h1></div>
-<p>This package allows the application of the Quantum Genetic Algorithm that was first proposed by Han and Kim in 2000.</p>
-<p>This R development is a derivation of the Python implementation by Lahoz-Beltra (<a href="https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms" class="external-link uri">https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms</a>).</p>
-<p>Each optimization problem is represented as a maximization one, where each solution is a sequence of (qu)bits. Following the quantum paradigm, these qubits are in a superposition state: when measuring them, they collapse in a 0 or 1 state. After measurement, the fitness of the solution is calculated as in usual genetic algorithms.</p>
-<p>The evolution at each iteration is oriented by the application of two quantum gates to the amplitudes of the qubits:</p>
-<ol style="list-style-type: decimal">
+<div id="qga-quantum-genetic-algorithm-r-package" class="section level1">
+<div class="page-header"><h1 class="hasAnchor">
+<a href="#qga-quantum-genetic-algorithm-r-package" class="anchor"></a>QGA (Quantum Genetic Algorithm) R package</h1></div>
+<p>This package allows the application of the Quantum Genetic Algorithm
+that was first proposed by Han and Kim in 2000.</p>
+<p>This R development is a derivation of the Python implementation by
+Lahoz-Beltra (<a href="https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms" class="uri">https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms</a>).</p>
+<p>Each optimization problem is represented as a maximization one, where
+each solution is a sequence of (qu)bits. Following the quantum paradigm,
+these qubits are in a superposition state: when measuring them, they
+collapse in a 0 or 1 state. After measurement, the fitness of the
+solution is calculated as in usual genetic algorithms.</p>
+<p>The evolution at each iteration is oriented by the application of two
+quantum gates to the amplitudes of the qubits:</p>
+<ol>
 <li>a rotation gate (always);</li>
 <li>a Pauli-X gate (optionally).</li>
 </ol>
-<p>The rotation is based on the theta angle values: higher values allow a quicker evolution, and lower values avoid local maxima.</p>
-<p>The Pauli-X gate is equivalent to the classical mutation operator and determines the swap between alfa and beta amplitudes of a given qubit.</p>
-<p>The package has been developed in such a way as to permit a complete separation between the “engine”, and the particular problem subject to combinatorial optimization. So far, three specific problems have been implemented, namely:</p>
-<ol style="list-style-type: decimal">
+<p>The rotation is based on the theta angle values: higher values allow
+a quicker evolution, and lower values avoid local maxima.</p>
+<p>The Pauli-X gate is equivalent to the classical mutation operator and
+determines the swap between alfa and beta amplitudes of a given
+qubit.</p>
+<p>The package has been developed in such a way as to permit a complete
+separation between the “engine”, and the particular problem subject to
+combinatorial optimization. A number of examples have been implemented,
+namely:</p>
+<ol>
+<li>airlines hubs optimization;</li>
 <li>best stratification of a sampling frame;</li>
-<li>traveler salesman problem;</li>
-<li>knapsack problem.</li>
+<li>clustering;</li>
+<li>knapsack problem;</li>
+<li>maximum of a function;</li>
+<li>traveler salesman problem.</li>
 </ol>
-<p>In the “inst/docs” folder, the corresponding examples of applications are contained:</p>
-<ol style="list-style-type: decimal">
-<li>BestStratificationExample.R</li>
-<li>TravelerSalesmanExample.R</li>
-<li>KnapsackProblemExample.R</li>
+<p>In the “inst/docs” folder, the corresponding examples of applications
+are contained:</p>
+<ol>
+<li>airlines_hubs.R</li>
+<li>BestStratification.R</li>
+<li>clustering.R</li>
+<li>knapsack.R</li>
+<li>functionMax.R</li>
+<li>TSP.R</li>
 </ol>
+<p>together with the necessary input data.</p>
 <p>Once installed the package, after executing</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"barcaroli/QGA"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"barcaroli/QGA"</span><span class="op">)</span></span></code></pre></div>
 <p>they can be run, and their results analyzed.</p>
-<p>In particular, QGA can be compared with the traditional genetic algorithm.</p>
-<p>In the case of the best stratification, QGA is compared with the GA implemented in the package “SamplingStrata”. It can be verified that QGA converges to a convenient solution more rapidly than SamplingStrata.</p>
-<p>In the other cases, QGA is compared with the GA implemented in the “genalg” package. QGA is more rapidly converging to a good solution in the knapsack problem, while the opposite is in the case of the traveler salesman.</p>
-<div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h2>
-<p>Kuk-Hyun Han and Jong-Hwan Kim, “Genetic quantum algorithm and its application to combinatorial optimization problem,” Proceedings of the 2000 Congress on Evolutionary Computation. CEC00 (Cat. No.00TH8512), 2000, pp.1354-1360 vol.2, doi: 10.1109/CEC.2000.870809.</p>
-<p>Lahoz-Beltra, Rafael. 2008. “QuantumGeneticAlgorithms.” GitHub Repository. <a href="https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms" class="external-link uri">https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms</a>.</p>
-<p>Lahoz-Beltra, Rafael. 2016. “Quantum Genetic Algorithms for Computer Scientists.” Computers 5(4). <a href="https://doi.org/10.3390/computers5040024" class="external-link uri">https://doi.org/10.3390/computers5040024</a>.</p>
-<p>Nowotniak, Robert. 2010. “Survey of Quantum-Inspired Evolutionary Algorithms.” Technical University of Łódź, Computer Engineering Department. <a href="https://robert.nowotniak.com/papers/survey2010fimb.pdf" class="external-link uri">https://robert.nowotniak.com/papers/survey2010fimb.pdf</a>.</p>
-<p>Zhang, Gexiang. 2011. “Quantum-Inspired Evolutionary Algorithms: A Survey and Empirical Study.” Journal of Heuristics 17: 303–51. <a href="https://doi.org/10.1007/s10732-010-9136-0" class="external-link uri">https://doi.org/10.1007/s10732-010-9136-0</a></p>
+<p>In particular, QGA can be compared with the traditional genetic
+algorithm. In the case of the best stratification, QGA is compared with
+the GA implemented in the package “SamplingStrata”.</p>
+<div id="references" class="section level2">
+<h2 class="hasAnchor">
+<a href="#references" class="anchor"></a>References</h2>
+<p>Kuk-Hyun Han and Jong-Hwan Kim, “Genetic quantum algorithm and its
+application to combinatorial optimization problem,” Proceedings of the
+2000 Congress on Evolutionary Computation. CEC00 (Cat. No.00TH8512),
+2000, pp.1354-1360 vol.2, doi: 10.1109/CEC.2000.870809.</p>
+<p>Lahoz-Beltra, Rafael. 2008. “QuantumGeneticAlgorithms.” GitHub
+Repository. <a href="https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms" class="uri">https://github.com/ResearchCodesHub/QuantumGeneticAlgorithms</a>.</p>
+<p>Lahoz-Beltra, Rafael. 2016. “Quantum Genetic Algorithms for Computer
+Scientists.” Computers 5(4). <a href="https://doi.org/10.3390/computers5040024" class="uri">https://doi.org/10.3390/computers5040024</a>.</p>
+<p>Nowotniak, Robert. 2010. “Survey of Quantum-Inspired Evolutionary
+Algorithms.” Technical University of Łódź, Computer Engineering
+Department. <a href="https://robert.nowotniak.com/papers/survey2010fimb.pdf" class="uri">https://robert.nowotniak.com/papers/survey2010fimb.pdf</a>.</p>
+<p>Zhang, Gexiang. 2011. “Quantum-Inspired Evolutionary Algorithms: A
+Survey and Empirical Study.” Journal of Heuristics 17: 303–51. <a href="https://doi.org/10.1007/s10732-010-9136-0" class="uri">https://doi.org/10.1007/s10732-010-9136-0</a></p>
 </div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2 data-toc-skip>Links</h2>
+<h2>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://cloud.r-project.org/package=QGA" class="external-link">View on CRAN</a></li>
-<li><a href="https://github.com/barcaroli/QGA/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/barcaroli/QGA/issues" class="external-link">Report a bug</a></li>
+<li>Download from CRAN at <br><a href="https://cloud.r-project.org/package=QGA">https://​cloud.r-project.org/​package=QGA</a>
+</li>
+<li>Browse source code at <br><a href="https://github.com/barcaroli/QGA/">https://​github.com/​barcaroli/​QGA/​</a>
+</li>
+<li>Report a bug at <br><a href="https://github.com/barcaroli/QGA/issues%20">https://​github.com/​barcaroli/​QGA/​issues </a>
+</li>
 </ul>
 </div>
-
 <div class="license">
-<h2 data-toc-skip>License</h2>
+<h2>License</h2>
 <ul class="list-unstyled">
 <li>GPL (&gt;= 2)</li>
 </ul>
 </div>
-
-
-<div class="citation">
-<h2 data-toc-skip>Citation</h2>
-<ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing QGA</a></li>
-</ul>
-</div>
-
 <div class="developers">
-<h2 data-toc-skip>Developers</h2>
+<h2>Developers</h2>
 <ul class="list-unstyled">
 <li>Giulio Barcaroli <br><small class="roles"> Author, maintainer </small>  </li>
 </ul>
 </div>
-
-
 
   </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p></p>
-<p>Developed by Giulio Barcaroli.</p>
+  <p>Developed by Giulio Barcaroli.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
@@ -184,8 +209,6 @@
 
   
 
-
-  
 
   </body>
 </html>

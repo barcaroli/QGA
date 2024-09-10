@@ -1,39 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://barcaroli.github.io/QGA/404.html</loc>
+    <loc>https://barcaroli.github.io/QGA//index.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/articles/airlines_hubs.html</loc>
+    <loc>https://barcaroli.github.io/QGA//reference/QGA.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/articles/clustering.html</loc>
+    <loc>https://barcaroli.github.io/QGA//articles/airlines_hubs.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/articles/functionMax.html</loc>
+    <loc>https://barcaroli.github.io/QGA//articles/BestStratification.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/articles/index.html</loc>
+    <loc>https://barcaroli.github.io/QGA//articles/clustering.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/articles/QGA.html</loc>
+    <loc>https://barcaroli.github.io/QGA//articles/functionMax.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/articles/TSP.html</loc>
+    <loc>https://barcaroli.github.io/QGA//articles/QGA.html</loc>
   </url>
   <url>
-    <loc>https://barcaroli.github.io/QGA/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA/index.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA/reference/QGA.html</loc>
+    <loc>https://barcaroli.github.io/QGA//articles/TSP.html</loc>
   </url>
 </urlset>
