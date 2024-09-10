@@ -20,18 +20,26 @@ The rotation is based on the theta angle values: higher values allow a quicker e
 
 The Pauli-X gate is equivalent to the classical mutation operator and determines the swap between alfa and beta amplitudes of a given qubit.
 
-The package has been developed in such a way as to permit a complete separation between the "engine", and the particular problem subject to combinatorial optimization. So far, three specific problems have been implemented, namely:
+The package has been developed in such a way as to permit a complete separation between the "engine", and the particular problem subject to combinatorial optimization. 
+A number of examples have been implemented, namely:
 
-a. best stratification of a sampling frame;
-b. traveler salesman problem;
-c. knapsack problem.
+a. airlines hubs optimization;
+b. best stratification of a sampling frame;
+c. clustering;
+d. knapsack problem;
+e. maximum of a function;
+f. traveler salesman problem.
 
 In the "inst/docs" folder, the corresponding examples of applications are contained:
 
-a. BestStratificationExample.R
-b. TravelerSalesmanExample.R
-c. KnapsackProblemExample.R
+a. airlines_hubs.R
+b. BestStratification.R
+c. clustering.R
+d. knapsack.R
+e. functionMax.R
+f. TSP.R
 
+together with the necessary input data.
 
 Once installed the package, after executing
 
@@ -41,11 +49,8 @@ devtools::install_github("barcaroli/QGA")
 
 they can be run, and their results analyzed.
 
-In particular, QGA can be compared with the traditional genetic algorithm. 
+In particular, QGA can be compared with the traditional genetic algorithm. In the case of the best stratification, QGA is compared with the GA implemented in the package "SamplingStrata". 
 
-In the case of the best stratification, QGA is compared with the GA implemented in the package "SamplingStrata". It can be verified that QGA converges to a convenient solution more rapidly than SamplingStrata.
-
-In the other cases, QGA is compared with the GA implemented in the "genalg" package. QGA is more rapidly converging to a good solution in the knapsack problem, while the opposite is in the case of the traveler salesman.
 
 
 ## References
