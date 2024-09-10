@@ -1,5 +1,5 @@
 ---
-title: "Finding the maximum of a function with QGA"
+title: "Maximum of a function"
 author: "Giulio Barcaroli"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
