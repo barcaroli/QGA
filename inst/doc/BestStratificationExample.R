@@ -4,7 +4,8 @@
 #---------------------------------------------
 
 #----------------------
-require(SamplingStrata)
+if (!require(SamplingStrata)) install.packages("SamplingStrata")
+library(SamplingStrata)
 library(QGA)
 #-------------------------------------------
 # Fitness evaluation for best stratification
@@ -79,16 +80,17 @@ solutionQGA <- QGA(popsize,
                 verbose = FALSE,
                 eval_fitness = BestStratification,
                 eval_func_inputs = list(frame, cv))
+QGA:::plot_Output(solutionQGA[[2]])
 #----------------------
 # Analyze results
-solutionQGA <- solutionQGA[[1]]
-table(solutionQGA)
+solution_QGA <- solutionQGA[[1]]
+table(solution_QGA)
 strata <- aggrStrata2(dataset = frame, 
-                      vett = solutionQGA, 
+                      vett = solution_QGA, 
                       dominio = 1)
 sum(bethel(strata, cv, realAllocation = TRUE))
 # 1] 19.75488
-iris$stratum <- solutionQGA
+iris$stratum <- solution_QGA
 table(iris$Species, iris$stratum)
 #             1  2  3
 # setosa      0 50  0
@@ -106,7 +108,7 @@ solution_SamplingStrata <- optimStrata(method = "atomic",
                   minnumstr = 1,
                   iter = 2000)
 sum(solution_SamplingStrata$aggr_strata$SOLUZ)
-# [1] 19.75488
+# [1] 19.86479
 iris$stratum <- solution_SamplingStrata$framenew$LABEL
 table(iris$Species, iris$stratum)
 #             1  2  3
@@ -125,6 +127,7 @@ evaluate <- function(solution) {
   fitness <- sum(SamplingStrata::bethel(strata, cv, realAllocation = TRUE))
   return(fitness)
 }
+set.seed(1234)
 solution_genalg <- rbga(stringMin=c(rep(1,nrow(iris))), 
                    stringMax=c(rep(nstrat,nrow(iris))),
                    popSize=20, 
@@ -152,4 +155,4 @@ table(iris$Species, iris$stratum)
 # setosa      0 50  0
 # versicolor 48  0  2
 # virginica   4  0 46
-save.image("run_best_stratification.RData")
+save.image("best_stratification.RData")
