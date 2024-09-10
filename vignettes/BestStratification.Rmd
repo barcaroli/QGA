@@ -119,7 +119,7 @@ solutionQGA <- QGA(popsize=20,
 ```
 
 
-```{r eval=TRUE, echo=FALSE, include=FALSE}
+```{r, eval=TRUE, echo=FALSE, include=FALSE}
 load("BestStrat.Rdata")
 ```
 
