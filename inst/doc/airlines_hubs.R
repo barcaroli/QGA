@@ -1,38 +1,48 @@
-#---------------------------------------------
-# Application of the Quantum Genetic Algorithm
-# to the Traveler Salesman Problem
-#---------------------------------------------
-
-#----------------------
+## ----setup, include = FALSE---------------------------------------------------------------------
+options(width = 999)
+knitr::opts_chunk$set(fig.width=8, fig.height=6,
+  collapse = TRUE,
+  comment = "#>"
+)
+# if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
+# library(bookdown)
 library(QGA)
-#----------------------
 
-#-------------------------------------------------
-# Fitness evaluation for Airline Hubs Problem
-#-------------------------------------------------
+
+## -----------------------------------------------------------------------------------------------
+cities <- read.csv("Airlines_cities.csv")
+print(cities)
+
+
+## -----------------------------------------------------------------------------------------------
+cost <- read.csv("Airlines_cost.csv",header=F)
+str(cost)
+
+
+## -----------------------------------------------------------------------------------------------
+flow <- read.csv("Airlines_flow.csv",header=F)
+str(flow)
+
+
+## -----------------------------------------------------------------------------------------------
 airline_hub <- function(solution,input) {
-  obj <- -sum(apply(input[,solution], 1, min))
-  # if (length(table(solution)) < length(solution)) {
-  #   obj <- -sum(input)
-  # }
+  cost <- input$cost
+  flow <- input$flow
+  penalization <- sum(cost)*0.0005
+  obj <- -sum(apply(cost[,solution] * flow[,solution], 1, min)) / sum(cost)
+  if (length(table(solution)) < length(solution)) {
+    obj <- obj - penalization
+  }
+  # cat("\nSolution:",solution,"  obj: ",obj)
   return(obj)
 }
 
-#-------------------------------------------------
-# Prepare data for fitness evaluation
-cities <- read.csv("Airlines_cities.csv")
-cost <- read.csv("Airlines_cost.csv",header=F)
-flow <- read.csv("Airlines_flow.csv",header=F)
-# Choose the input for the fitness function
-input <- -flow
 
-#----------------------
-
-#----------------------
-# Perform optimization
+## -----------------------------------------------------------------------------------------------
+input <- list(cost=cost,flow=flow)
 popsize = 20
 Genome = 3 # Number of desired hubs
-nvalues_sol = nrow(cities)
+nvalues_sol = 25
 set.seed(4321)
 solutionQGA <- QGA(
                 popsize,
@@ -46,18 +56,17 @@ solutionQGA <- QGA(
                 mutation_rate_init = 3/(Genome + 1),
                 mutation_rate_end = 1/(Genome + 1),
                 mutation_flag = TRUE,
-                plotting = TRUE,
+                plotting = FALSE,
+                progress = FALSE,
                 verbose = FALSE,
                 eval_fitness = airline_hub,
                 eval_func_inputs = input)
 
-#----------------------
-# Analyze solution
-library(tidyverse)
-library(ggplot2)
+
+## -----------------------------------------------------------------------------------------------
 solution <- solutionQGA[[1]]
 cities$City[solution]
-sol <- input[,solution] 
+sol <- cost[,solution] 
 find_min_column <- function(row) {
   which.min(row)
 }
@@ -65,10 +74,15 @@ min_column_vector <- apply(sol, 1, find_min_column)
 print(min_column_vector)
 cities$Hub <- cities$City[solution][min_column_vector]
 print(cities[,c(2,5)])
-write.table(cities,"solution.csv",sep=",",quote=F,row.names=F)
 
 
-# Plot
+## ----message=FALSE, warning=FALSE---------------------------------------------------------------
+if (!require(tidyverse)) install.packages("tidyverse", dependencies=TRUE)
+if (!require(ggplot2)) install.packages("ggplot2", dependencies=TRUE)
+if (!require(maps)) install.packages("maps", dependencies=TRUE)
+library(tidyverse)
+library(ggplot2)
+library(maps)
 connections <- cities %>%
   left_join(cities %>% select(City, Lat, Long), by = c("Hub" = "City")) %>%
   rename(Hub_Lat = Lat.y, Hub_Long = Long.y) %>%
@@ -94,7 +108,7 @@ gg <- gg + geom_segment(data = hub_connections,
 gg <- gg + geom_point(data = cities, aes(x = Long, y = Lat), color = "blue", size = 2)
 gg <- gg + geom_point(data = cities[solution,], aes(x = Long, y = Lat), color = "red", size = 3)
 gg <- gg + geom_text(data = cities, aes(x = Long, y = Lat, label = City), hjust = 1, vjust = 1, size = 3)
-gg <- gg + ggtitle("Airlines hubs for 25 airports in the USA") +
+gg <- gg + ggtitle("Airlines hubs (cost minimization)") +
   theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
 print(gg)
 
