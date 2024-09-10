@@ -100,25 +100,30 @@
 </ol>
 <p>The rotation is based on the theta angle values: higher values allow a quicker evolution, and lower values avoid local maxima.</p>
 <p>The Pauli-X gate is equivalent to the classical mutation operator and determines the swap between alfa and beta amplitudes of a given qubit.</p>
-<p>The package has been developed in such a way as to permit a complete separation between the “engine”, and the particular problem subject to combinatorial optimization. So far, three specific problems have been implemented, namely:</p>
+<p>The package has been developed in such a way as to permit a complete separation between the “engine”, and the particular problem subject to combinatorial optimization. A number of examples have been implemented, namely:</p>
 <ol style="list-style-type: decimal">
+<li>airlines hubs optimization;</li>
 <li>best stratification of a sampling frame;</li>
-<li>traveler salesman problem;</li>
-<li>knapsack problem.</li>
+<li>clustering;</li>
+<li>knapsack problem;</li>
+<li>maximum of a function;</li>
+<li>traveler salesman problem.</li>
 </ol>
 <p>In the “inst/docs” folder, the corresponding examples of applications are contained:</p>
 <ol style="list-style-type: decimal">
-<li>BestStratificationExample.R</li>
-<li>TravelerSalesmanExample.R</li>
-<li>KnapsackProblemExample.R</li>
+<li>airlines_hubs.R</li>
+<li>BestStratification.R</li>
+<li>clustering.R</li>
+<li>knapsack.R</li>
+<li>functionMax.R</li>
+<li>TSP.R</li>
 </ol>
+<p>together with the necessary input data.</p>
 <p>Once installed the package, after executing</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"barcaroli/QGA"</span><span class="op">)</span></span></code></pre></div>
 <p>they can be run, and their results analyzed.</p>
-<p>In particular, QGA can be compared with the traditional genetic algorithm.</p>
-<p>In the case of the best stratification, QGA is compared with the GA implemented in the package “SamplingStrata”. It can be verified that QGA converges to a convenient solution more rapidly than SamplingStrata.</p>
-<p>In the other cases, QGA is compared with the GA implemented in the “genalg” package. QGA is more rapidly converging to a good solution in the knapsack problem, while the opposite is in the case of the traveler salesman.</p>
+<p>In particular, QGA can be compared with the traditional genetic algorithm. In the case of the best stratification, QGA is compared with the GA implemented in the package “SamplingStrata”.</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>

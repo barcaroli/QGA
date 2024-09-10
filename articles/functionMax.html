@@ -91,7 +91,7 @@
                         <h4 data-toc-skip class="author">Giulio
 Barcaroli</h4>
             
-            <h4 data-toc-skip class="date">2024-09-08</h4>
+            <h4 data-toc-skip class="date">2024-09-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/barcaroli/QGA/blob/main/vignettes/functionMax.Rmd" class="external-link"><code>vignettes/functionMax.Rmd</code></a></small>
       <div class="hidden name"><code>functionMax.Rmd</code></div>
@@ -112,7 +112,7 @@ definition.</p>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">15</span>,<span class="fl">0.01</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu">f</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span><span class="op">)</span></span></code></pre></div>
-<p><img src="functionMax_files/figure-html/unnamed-chunk-1-1.png" width="700"></p>
+<p><img src="functionMax_files/figure-html/unnamed-chunk-1-1.png" width="768"></p>
 <p>we want to determine its maximum in the interval 0-15.</p>
 <p>First of all, we use the analytic approach: first, we obtain the
 first derivative of the function, and then calculate its roots when f(x)
@@ -139,10 +139,9 @@ first derivative of the function, and then calculate its roots when f(x)
 <span><span class="co"># cat("Root 2: x ≈", root2, "\n")</span></span>
 <span><span class="va">f_root1</span> <span class="op">&lt;-</span> <span class="fu">f</span><span class="op">(</span><span class="va">root1</span><span class="op">)</span></span>
 <span><span class="co"># f_root2 &lt;- f(root2)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"f("</span>, <span class="va">root1</span>, <span class="st">") ≈"</span>, <span class="va">f_root1</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## f( 11.16085 ) ≈ 6.078025</span></span></code></pre>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># cat("f(", root2, ") ≈", f_root2, "\n")</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"f("</span>, <span class="va">root1</span>, <span class="st">") ≈"</span>, <span class="va">f_root1</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; f( 11.16085 ) ≈ 6.078025</span></span>
+<span><span class="co"># cat("f(", root2, ") ≈", f_root2, "\n")</span></span></code></pre></div>
 <p>So, in correspondence with x=11.16085, we have a maximum for f(x)
 that is equal to 6.078025.</p>
 <p>The solution found by Lahoz-Beltra is 5.999, somehow far from the
@@ -153,7 +152,7 @@ the interval 0-15.</p>
 64 (qu)bits), that allows to explore 65536 points in the same
 interval.</p>
 <p>First, we define the fitness function:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">functionMax</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span>, <span class="va">eval_func_inputs</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solution</span> <span class="op">-</span> <span class="fl">1</span></span>
 <span>  <span class="co"># translate from binary to decimal value</span></span>
@@ -183,7 +182,7 @@ the 0-15 interval.</p></li>
 <p>Incidentally, if we want to find the minimum of the f(x), the fitness
 function should return (-fitness).</p>
 <p>Then, we set the parameters:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">popsize</span> <span class="op">=</span> <span class="fl">20</span></span>
 <span><span class="va">generation_max</span> <span class="op">=</span> <span class="fl">200</span></span>
 <span><span class="va">Genome</span> <span class="op">=</span> <span class="fl">16</span></span>
@@ -205,7 +204,7 @@ around the best solution found so far. The mutation rate (Pauli gate) is
 always set to 1/(popsize + 1)=0.04761905: this means that at each
 iteration, about 4.7% of the bit values are swapped.</p>
 <p>Finally, we apply the quantum genetic algorithm:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://barcaroli.github.io/QGA/">QGA</a></span><span class="op">)</span></span>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
 <span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
@@ -225,37 +224,36 @@ iteration, about 4.7% of the bit values are swapped.</p>
 <span>                   verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                   progress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                   eval_fitness <span class="op">=</span> <span class="va">functionMax</span>,</span>
-<span>                   eval_func_inputs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">Y</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## </span></span>
-<span><span class="co">##  *** Best fitness:  6.077961</span></span></code></pre>
-<p><img src="functionMax_files/figure-html/unnamed-chunk-5-1.png" width="700">
+<span>                   eval_func_inputs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  *** Best fitness:  6.077961</span></span></code></pre></div>
+<p><img src="functionMax_files/figure-html/unnamed-chunk-5-1.png" width="768">
 The found solution is</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solutionQGA</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solution</span> <span class="op">-</span> <span class="fl">1</span></span>
-<span><span class="va">solution</span></span></code></pre></div>
-<pre><code><span><span class="co">##  [1] 1 1 0 0 0 0 1 0 0 1 1 1 1 1 1 1</span></span></code></pre>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">x</span><span class="op">=</span><span class="fl">0</span></span>
+<span><span class="va">solution</span></span>
+<span><span class="co">#&gt;  [1] 1 1 0 0 0 0 1 0 0 1 1 1 1 1 1 1</span></span>
+<span><span class="va">x</span><span class="op">=</span><span class="fl">0</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">Genome</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">x</span><span class="op">=</span><span class="va">x</span><span class="op">+</span><span class="va">solution</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">*</span><span class="fl">2</span><span class="op">^</span><span class="op">(</span><span class="va">Genome</span><span class="op">-</span><span class="va">j</span><span class="op">)</span></span>
 <span>  <span class="co"># cat("\n",j," solution[j]:",solution[j],"  2^solution[Genome-j-1]:",2^(Genome-j))</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">x</span><span class="op">=</span><span class="va">x</span><span class="op">*</span><span class="fl">16</span><span class="op">/</span><span class="op">(</span><span class="fl">2</span><span class="op">^</span><span class="va">Genome</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span></span>
 <span><span class="va">y</span><span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span><span class="op">-</span><span class="fl">5</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="fl">2</span><span class="op">+</span><span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Function maximum: "</span>,<span class="va">y</span>,<span class="st">" at x="</span>,<span class="va">x</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Function maximum:  6.077961  at x= 11.15619</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Function maximum: "</span>,<span class="va">y</span>,<span class="st">" at x="</span>,<span class="va">x</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Function maximum:  6.077961  at x= 11.15619</span></span></code></pre></div>
 <p>We remind that the analytical solution was:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"f("</span>, <span class="va">root1</span>, <span class="st">") ≈"</span>, <span class="va">f_root1</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## f( 11.16085 ) ≈ 6.078025</span></span></code></pre>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"f("</span>, <span class="va">root1</span>, <span class="st">") ≈"</span>, <span class="va">f_root1</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; f( 11.16085 ) ≈ 6.078025</span></span></code></pre></div>
 <p>very close to the one found by the QGA.</p>
 <p>Finally, we can have a picture of the exploration of the interval
 0-15 by looking at the following plot:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">Y</span>,type<span class="op">=</span><span class="st">"h"</span>,col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html" class="external-link">title</a></span><span class="op">(</span><span class="st">"f(x)=abs((x-5)/(2+sin(x)))"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="functionMax_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="functionMax_files/figure-html/unnamed-chunk-8-1.png" width="768"></p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
