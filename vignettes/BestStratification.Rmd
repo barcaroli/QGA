@@ -19,7 +19,6 @@ knitr::opts_chunk$set(fig.width=8, fig.height=6,
 if (!require(SamplingStrata)) install.packages("SamplingStrata")
 library(SamplingStrata)
 library(QGA)
-load("best_stratification.Rdata")
 ```
 
 
@@ -117,6 +116,11 @@ solutionQGA <- QGA(popsize=20,
                 verbose = FALSE,
                 eval_fitness = BestStratification,
                 eval_func_inputs = list(frame, cv))
+```
+
+
+```{r eval=TRUE, echo=FALSE, include=FALSE}
+load("best_stratification.Rdata")
 ```
 
 
