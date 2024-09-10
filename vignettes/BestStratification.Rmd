@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 bibliography: QGA.bib
 vignette: >
-  %\VignetteIndexEntry{Traveller Salesman}
+  %\VignetteIndexEntry{Best stratification of a sampling frame}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
   \usepackage[utf8]{inputenc}
