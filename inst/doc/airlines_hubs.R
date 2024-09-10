@@ -1,11 +1,7 @@
-## ----setup, include = FALSE---------------------------------------------------------------------
-options(width = 999)
-knitr::opts_chunk$set(fig.width=8, fig.height=6,
-  collapse = TRUE,
-  comment = "#>"
-)
-# if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
-# library(bookdown)
+#--------------------------------------------------
+# Optimal determination of airline hubs with QGA
+#--------------------------------------------------
+
 library(QGA)
 
 

@@ -1,11 +1,6 @@
-## ----setup, include = FALSE---------------------------------------------------------------------
-options(width = 999)
-knitr::opts_chunk$set(fig.width=8, fig.height=6,
-  collapse = TRUE,
-  comment = "#>"
-)
-# if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
-# library(bookdown)
+#--------------------------------------
+# Traveller Salesman problem  with QGA
+#--------------------------------------
 library(QGA)
 
 
@@ -37,35 +32,26 @@ distance
 
 
 ## ----eval=FALSE---------------------------------------------------------------------------------
-## popsize = 20
-## Genome = nrow(cities)
-## nvalues_sol = nrow(cities)
-## set.seed(4321)
-## TSPsolution <- QGA(popsize,
-##                 generation_max = 1000,
-##                 nvalues_sol,
-##                 Genome,
-##                 thetainit = 3.1415926535 * 0.01,
-##                 thetaend = 3.1415926535 * 0.01,
-##                 # pop_mutation_rate_init = 1/(popsize + 1),
-##                 # pop_mutation_rate_end = 1/(popsize + 1),
-##                 # mutation_rate_init = 1/(Genome + 1),
-##                 # mutation_rate_end = 1/(Genome + 1),
-##                 mutation_flag = FALSE,
-##                 plotting = FALSE,
-##                 verbose = FALSE,
-##                 progress = FALSE,
-##                 eval_fitness = TravellingSalesman,
-##                 eval_func_inputs = distance)
-## 
-
-
-## ----eval=TRUE, echo=FALSE, include=FALSE-------------------------------------------------------
-load("TSPsolution.RData")
-
-
-## -----------------------------------------------------------------------------------------------
-QGA:::plot_Output(TSPsolution[[2]])
+popsize = 20
+Genome = nrow(cities)
+nvalues_sol = nrow(cities)
+set.seed(4321)
+TSPsolution <- QGA(popsize,
+                generation_max = 1000,
+                nvalues_sol,
+                Genome,
+                thetainit = 3.1415926535 * 0.01,
+                thetaend = 3.1415926535 * 0.01,
+                # pop_mutation_rate_init = 1/(popsize + 1),
+                # pop_mutation_rate_end = 1/(popsize + 1),
+                # mutation_rate_init = 1/(Genome + 1),
+                # mutation_rate_end = 1/(Genome + 1),
+                mutation_flag = FALSE,
+                plotting = TRUE,
+                verbose = FALSE,
+                progress = FALSE,
+                eval_fitness = TravellingSalesman,
+                eval_func_inputs = distance)
 
 
 ## -----------------------------------------------------------------------------------------------

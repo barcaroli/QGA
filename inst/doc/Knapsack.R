@@ -77,7 +77,7 @@ knapsackSolution  <- QGA(popsize,
                 eval_fitness,
                 eval_func_inputs)
 QGA:::plot_Output(knapsackSolution [[2]])
-save(knapsackSolution,file="knapsackSolution.RData")
+
 #----------------------
 # Analyze results
 best <- knapsackSolution[[1]] - 1

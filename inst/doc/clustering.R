@@ -1,11 +1,7 @@
-## ----setup, include = FALSE---------------------------------------------------------------------
-options(width = 999)
-knitr::opts_chunk$set(fig.width=6, fig.height=4,
-  collapse = TRUE,
-  comment = "#>"
-)
-# if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
-# library(bookdown)
+#---------------------
+# Clustering with QGA
+#---------------------
+
 library(QGA)
 
 
@@ -35,27 +31,27 @@ vars <- colnames(iris)[1:4]
 vars
 
 
-## ----eval=FALSE---------------------------------------------------------------------------------
-## nclust = 3
-## popsize = 20
-## Genome = nrow(iris)
-## set.seed(1234)
-## solutionQGA <- QGA(popsize,
-##                 generation_max = 1500,
-##                 nvalues_sol = nclust,
-##                 Genome,
-##                 thetainit = 3.1415926535 * 0.1,
-##                 thetaend = 3.1415926535 * 0.05,
-##                 pop_mutation_rate_init = 1/(popsize + 1),
-##                 pop_mutation_rate_end = 1/(popsize + 1),
-##                 mutation_rate_init = 1/(Genome + 1),
-##                 mutation_rate_end = 1/(Genome + 1),
-##                 mutation_flag = TRUE,
-##                 plotting = FALSE,
-##                 verbose = FALSE,
-##                 progress = FALSE,
-##                 eval_fitness = clustering,
-##                 eval_func_inputs = list(iris, vars))
+## -------------------------------------------------------------------------------------
+nclust = 3
+popsize = 20
+Genome = nrow(iris)
+set.seed(1234)
+solutionQGA <- QGA(popsize,
+                generation_max = 1500,
+                nvalues_sol = nclust,
+                Genome,
+                thetainit = 3.1415926535 * 0.1,
+                thetaend = 3.1415926535 * 0.05,
+                pop_mutation_rate_init = 1/(popsize + 1),
+                pop_mutation_rate_end = 1/(popsize + 1),
+                mutation_rate_init = 1/(Genome + 1),
+                mutation_rate_end = 1/(Genome + 1),
+                mutation_flag = TRUE,
+                plotting = FALSE,
+                verbose = FALSE,
+                progress = FALSE,
+                eval_fitness = clustering,
+                eval_func_inputs = list(iris, vars))
 
 
 ## ----eval=TRUE, echo=FALSE, include=FALSE-------------------------------------------------------

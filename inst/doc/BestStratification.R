@@ -1,13 +1,10 @@
-## ----setup, include = FALSE---------------------------------------------------------------------
-options(width = 999)
-knitr::opts_chunk$set(fig.width=8, fig.height=6,
-  collapse = TRUE,
-  comment = "#>"
-)
+#--------------------------------------------------
+# Best stratification of a sampling frame with QGA
+#--------------------------------------------------
+
 if (!require(SamplingStrata)) install.packages("SamplingStrata")
 library(SamplingStrata)
 library(QGA)
-load("best_stratification.Rdata")
 
 
 ## -----------------------------------------------------------------------------------------------
@@ -54,23 +51,23 @@ BestStratification <- function(solution,
 }
 
 
-## ----eval=FALSE---------------------------------------------------------------------------------
-## set.seed(1234)
-## solutionQGA <- QGA(popsize=20,
-##                 generation_max = 2000,
-##                 nvalues_sol = nstrat,
-##                 Genome = nrow(iris),
-##                 thetainit = 3.1415926535 * 0.15,
-##                 thetaend = 3.1415926535 * 0.0125,
-##                 pop_mutation_rate_init = 1/(popsize + 1),
-##                 pop_mutation_rate_end = 1/(popsize + 1),
-##                 mutation_rate_init = 1/(Genome + 1),
-##                 mutation_rate_end = 1/(Genome + 1),
-##                 mutation_flag = TRUE,
-##                 plotting = TRUE,
-##                 verbose = FALSE,
-##                 eval_fitness = BestStratification,
-##                 eval_func_inputs = list(frame, cv))
+## -------------------------------------------------------------------------------------
+set.seed(1234)
+solutionQGA <- QGA(popsize=20,
+                generation_max = 2000,
+                nvalues_sol = nstrat,
+                Genome = nrow(iris),
+                thetainit = 3.1415926535 * 0.15,
+                thetaend = 3.1415926535 * 0.0125,
+                pop_mutation_rate_init = 1/(popsize + 1),
+                pop_mutation_rate_end = 1/(popsize + 1),
+                mutation_rate_init = 1/(Genome + 1),
+                mutation_rate_end = 1/(Genome + 1),
+                mutation_flag = TRUE,
+                plotting = TRUE,
+                verbose = FALSE,
+                eval_fitness = BestStratification,
+                eval_func_inputs = list(frame, cv))
 
 
 ## -----------------------------------------------------------------------------------------------
@@ -94,14 +91,14 @@ table(iris$Species, iris$stratum)
 
 
 ## ----eval=FALSE---------------------------------------------------------------------------------
-## set.seed(1234)
-## solution_SamplingStrata <- optimStrata(method = "atomic",
-##                   framesamp = frame,
-##                   nStrata = nstrat,
-##                   errors = cv,
-##                   pops = popsize,
-##                   minnumstr = 1,
-##                   iter = 2000)
+set.seed(1234)
+solution_SamplingStrata <- optimStrata(method = "atomic",
+                  framesamp = frame,
+                  nStrata = nstrat,
+                  errors = cv,
+                  pops = popsize,
+                  minnumstr = 1,
+                  iter = 2000)
 
 
 ## -----------------------------------------------------------------------------------------------
