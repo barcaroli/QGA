@@ -36,7 +36,9 @@
 #' @param progress flag indicating progress bar during iterations
 #' @param eval_fitness name of the function that will be used to evaluate the fitness of each solution
 #' @param eval_func_inputs specific inputs required by the eval_fitness function
-#' @param stop_limit value to stop the iterations if the fitness is higher
+#' @param stop_limit value to stop the iterations if the fitness is higher than a given value
+#' @param stop_iters number of iterations without improvement of fitness before stopping (default is 100)
+#' 
 #' 
 #' @export
 #' 
@@ -88,7 +90,8 @@
 #'                 progress = FALSE,
 #'                 eval_fitness = KnapsackProblem,
 #'                 eval_func_inputs = list(items,
-#'                                         maxweight))
+#'                                         maxweight),
+#'                 stop_iters=50)
 #' #----------------------
 #' # Analyze results
 #' solution <- solutionQGA[[1]]
@@ -114,7 +117,8 @@ QGA <- function(popsize = 20,
                 progress = TRUE,
                 eval_fitness,
                 eval_func_inputs,
-                stop_limit = NULL) {
+                stop_limit = NULL,
+                stop_iters = 20) {
   # check
   if (is.null(nvalues_sol)) stop("nvalues_sol parameter value missing!")
   if (is.null(Genome)) stop("Genome parameter value missing!")
@@ -211,8 +215,12 @@ QGA <- function(popsize = 20,
   if (progress == TRUE) pb <- txtProgressBar(min = 0, max = generation_max, style = 3)
   if (is.null(stop_limit)) stop_limit <- Inf
   iter <- 0
-  while (generation <= generation_max & stop_limit > fitness_max) {
+  old_fitness <- -Inf
+  while (generation <= generation_max & 
+         stop_limit > fitness_max &
+         (!res$fitness_best[iter+1] - old_fitness == 0)) {
     iter <- iter + 1
+    if (iter > stop_iters) old_fitness <- res$fitness_best[iter-stop_iters]
     if (progress == TRUE) setTxtProgressBar(pb, generation)
     # cat("\n Iteration: ",generation)
     theta <- thetainit - ((thetainit - thetaend) / generation_max) * generation

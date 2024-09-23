@@ -1,6 +1,5 @@
-#--------------------------------
-# Maximum of a function with QGA
-#--------------------------------
+## ----setup, include=FALSE---------------------------------------------------------------
+knitr::opts_chunk$set(echo = TRUE)
 
 
 ## ---------------------------------------------------------------------------------------
@@ -12,7 +11,7 @@ y <- f(x)
 plot(x,y)
 
 
-## -----------------------------------------------------------
+## ----message=FALSE, warning=FALSE-------------------------------------------------------
 # Analytic solution
 if (!require(numDeriv)) install.packages("numDeriv", dependencies=TRUE)
 library(numDeriv)

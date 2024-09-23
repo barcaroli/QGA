@@ -67,7 +67,6 @@ data(iris)
 vars <- colnames(iris)[1:4]
 vars
 ```
-
 The above four variables will be used in clustering.
 
 ## Optimization
@@ -100,7 +99,7 @@ solutionQGA <- QGA(popsize,
 ```
 
 ```{r, eval=TRUE, echo=FALSE, include=FALSE}
-load("clustering.RData")
+load("CLUSTsolution.RData")
 ```
 
 
@@ -117,7 +116,6 @@ The plot indicates that the number of iterations was enough to obtain a solution
 solution <- CLUSTsolution[[1]]
 table(solution)
 ```
-
 We have 3 perfectly balanced clusters. 
 
 We can try to understand the quality of these clusters by comparing them to the "Species" variable in the dataset:
@@ -126,5 +124,4 @@ We can try to understand the quality of these clusters by comparing them to the 
 iris$cluster <- solution
 xtabs( ~ Species + cluster, data=iris)
 ```
-
 It seems that the cluster values can predict quite well the Species of the iris flowers, with only 10 misclassifications out of 150.

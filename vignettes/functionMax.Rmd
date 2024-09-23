@@ -1,20 +1,12 @@
 ---
-title: "Maximum of a function"
+title: "Finding the maximum of a function with QGA"
 author: "Giulio Barcaroli"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Maximum of a function}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
-  \usepackage[utf8]{inputenc}
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-options(width = 999)
-knitr::opts_chunk$set(fig.width=8, fig.height=6,
-  collapse = TRUE,
-  comment = "#>")
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 With the Quantum Genetic Algorithm it is possible to determine the maximum (or the minimum) of a function in a given interval of definition.
