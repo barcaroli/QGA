@@ -1,0 +1,21 @@
+---
+output: github_document
+keep_md: TRUE
+---
+
+<!-- NEWS.md is generated from NEWS.Rmd. Please edit NEWS.Rmd file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+# QGA 1.1
+
+* Added two parameters to the QGA function:
+
+  - stop_limit (value to stop the iterations if the fitness is higher than a given value)
+  - stop_iters (number of iterations without improvement of fitness before stopping)
