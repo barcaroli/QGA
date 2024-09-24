@@ -30,16 +30,7 @@ d. knapsack problem;
 e. maximum of a function;
 f. traveler salesman problem.
 
-In the "inst/docs" folder, the corresponding examples of applications are contained:
-
-a. airlines_hubs.R
-b. BestStratification.R
-c. clustering.R
-d. knapsack.R
-e. functionMax.R
-f. TSP.R
-
-together with the necessary input data.
+In the "inst/docs" folder, the corresponding examples of applications are contained, together with the necessary input data.
 
 Once installed the package, after executing
 
@@ -50,6 +41,8 @@ devtools::install_github("barcaroli/QGA")
 they can be run, and their results analyzed.
 
 In particular, QGA can be compared with the traditional genetic algorithm. In the case of the best stratification, QGA is compared with the GA implemented in the package "SamplingStrata". 
+
+In general, when the number of values that each element in the genome can assume is not high, then a relative efficiency of the QGA is to be expected with respect to the classical GA. When the number of these values is high, the classical GA tends to be more efficient.
 
 
 

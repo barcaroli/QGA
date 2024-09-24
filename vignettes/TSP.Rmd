@@ -18,15 +18,31 @@ knitr::opts_chunk$set(fig.width=8, fig.height=6,
   collapse = TRUE,
   comment = "#>"
 )
-# if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
-# library(bookdown)
 library(QGA)
+if (!require(genalg)) install.packages("genalg", dependencies=TRUE)
+library(genalg)
+
 ```
 
 
-# Travelling salesman
+## Travelling salesman
 
 "The travelling salesperson problem, also known as travelling salesman problem, asks the following question: "Given a list of cities and the distances between each pair of cities, what is the shortest possible route that visits each city exactly once and returns to the origin city?" It is an NP-hard problem in combinatorial optimization, important in theoretical computer science and operations research." (from Wikipedia).
+
+First, we apply the Quantum Genetic Algorithm, then a classical GA, and compare their results.
+
+## Prepare data 
+
+An external file with a list of cities (names and coordinates) is read, and a number of them is selected (here, only 9):
+
+```{r}
+cities <- read.csv("TSP_cities.csv")
+ncities <- 9
+cities <- cities[c(1:ncities),]
+cities
+```
+
+## QGA application
 
 ## Fitness evaluation
 
@@ -52,16 +68,6 @@ This function receives as input parameters:
 * solution (the current solution to be evaluated)
 * distance (the matrix of distances between the cities to be visited)
 
-## Prepare data 
-
-An external file with a list of cities (names and coordinates) is read, and a number of them is selected (here, only 9):
-
-```{r}
-cities <- read.csv("TSP_cities.csv")
-ncities <- 9
-cities <- cities[c(1:ncities),]
-cities
-```
 
 ```{r}
 distance <- as.matrix(dist(cities[,c(2:3)]))
@@ -71,7 +77,7 @@ distance
 
 Here, the distances have been calculated simply as Euclidean distances: clearly, in more realistic cases they should be calculated based on a road map.
 
-## Optimization
+### Optimization
 
 We define the Genome parameter as the number of cities; also the number of values is set equal to the number of cities.
 This means that each solution is a vector of 9 elements, each one with an assigned value from 1 to 9: each couple element/value indicates from which origin city (element) the travelling salesman should go to which destination city (value).
@@ -83,7 +89,7 @@ popsize = 20
 Genome = nrow(cities)
 nvalues_sol = nrow(cities)
 set.seed(4321)
-TSPsolution <- QGA(popsize,
+solutionQGA <- QGA(popsize,
                 generation_max = 1000,
                 nvalues_sol,
                 Genome,
@@ -98,31 +104,41 @@ TSPsolution <- QGA(popsize,
                 verbose = FALSE,
                 progress = FALSE,
                 eval_fitness = TravellingSalesman,
-                eval_func_inputs = distance)
+                eval_func_inputs = distance,
+                stop_iters = 500)
 
 ```
 
 ```{r, eval=TRUE, echo=FALSE, include=FALSE}
-load("TSPsolution.RData")
+load("TSPsolutionQGA.RData")
 ```
 
 
 ```{r}
-QGA:::plot_Output(TSPsolution[[2]])
+QGA:::plot_Output(solutionQGA[[2]])
 ```
 
 The plot indicates that the number of iterations was enough to obtain a solution that is likely to be no further improved.
 
 
-## Analysis of the solution
+### Analysis of the solution
 
 
 ```{r}
-solution <- TSPsolution[[1]]
+solution <- solutionQGA[[1]]
 cities$city[solution]
 cities_tsp <- cities[solution,]
 ```
+The sum of distances:
 
+```{r}
+l = 0.0  
+for (i in 2:length(solution)) {
+  l = l+distance[solution[i-1], solution[i]]
+}
+l = l + distance[solution[1],solution[length(solution)]]
+l
+```
 
 
 ```{r message=F, warning=FALSE}
@@ -150,14 +166,110 @@ gg <- ggplot() +
             hjust = 0, vjust = 0, nudge_x = 0.1, nudge_y = 0.1) +
   coord_fixed(1.3) +
   theme_minimal() +
-  ggtitle("Best itinerary") +
+  ggtitle("TSP best itinerary (QGA)") +
   theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold")) +
   xlim(6, 19) + ylim(36, 47)
 print(gg)
 ```
 
-## Warning
 
-This seems to be a reasonable solution, but it has to be noted that, with a higher number of cities, it becomes more and more difficult to find acceptable solutions. For instance, with 10 cities the algorithm gives unreasonable solutions. 
+## Classical GA application
 
-This depends on the fact that the efficiency of the quantum GA decreases with the number of the possible values given to each element of the genome (parameter n_val_sol). In that case, traditional genetic algorithms (GA, genalg, etc) can be more efficient.
+### Evaluation function
+
+```{r}
+evaluate <- function(solution) {
+  solution <- round(solution)
+  l = 0.0  
+  for (i in 2:length(solution)) {
+    l = l+distance[solution[i-1], solution[i]]
+  }
+  l = l + distance[solution[1],solution[length(solution)]]
+  penal <- ((nrow(distance)) - length(table(solution)))*sum(distance)/10
+  cost <- penal+l
+  return(cost)
+}
+```
+
+### Optimization
+
+```{r eavl=FALSE}
+set.seed(1234)
+solutionGA <- rbga(stringMin=c(rep(1,nrow(cities))), 
+                     stringMax=c(rep(nrow(cities),nrow(cities))),
+                     popSize=20, 
+                     iters=2000, 
+                     elitism=NA, 
+                     evalFunc=evaluate)
+plot(solutionGA)
+```
+
+```{r include=FALSE}
+load("TSPsolutionGA.Rdata")
+```
+
+
+### Analysis of the solution
+
+```{r}
+filter = solutionGA$evaluations == min(solutionGA$evaluations)
+bestObjectCount = sum(rep(1, solutionGA$popSize)[filter])
+if (bestObjectCount > 1) {
+  bestSolution = solutionGA$population[filter, ][1, 
+  ]
+} else {
+  bestSolution = solutionGA$population[filter, ]
+}
+bestSolution <- round(bestSolution)
+cities$city[bestSolution]
+cities_tsp <- cities[bestSolution,]
+```
+The sum of distances:
+
+```{r}
+l = 0.0  
+for (i in 2:length(bestSolution)) {
+  l = l+distance[bestSolution[i-1], bestSolution[i]]
+}
+l = l + distance[bestSolution[1],bestSolution[length(bestSolution)]]
+l
+```
+The fitness of the GA solution is lower than the one by the QGA.
+
+```{r}
+italy_map <- map_data("italy")
+lines <- data.frame(
+  x = cities_tsp$x[-nrow(cities_tsp)],
+  y = cities_tsp$y[-nrow(cities_tsp)],
+  xend = cities_tsp$x[-1],
+  yend = cities_tsp$y[-1]
+)
+gg <- ggplot() +
+  geom_polygon(data = italy_map, aes(x = long, y = lat, group = group), 
+               fill = "white", color = "black") +
+  geom_segment(data = lines, aes(x = x, y = y, xend = xend, yend = yend),
+               color = "red", size = 1) +
+  geom_point(data = cities_tsp, aes(x = x, y = y), color = "blue", size = 3) +
+  geom_text(data = cities_tsp, aes(x = x, y = y, label = city), 
+            hjust = 0, vjust = 0, nudge_x = 0.1, nudge_y = 0.1) +
+  coord_fixed(1.3) +
+  theme_minimal() +
+  ggtitle("TSP best itinerary (classic GA)") +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold")) +
+  xlim(6, 19) + ylim(36, 47)
+print(gg)
+```
+
+
+## Conclusions
+
+In this case, the performance of the QGA is equivalent than the one of the classical GA (but the number of iterations of GA is the double).
+
+Honestly, it has to be said that, increasing the number of the cities, GA outperforms QGA in the Traveller Salesman Problem.
+
+In general, when the number of values that each element in the genome can assume is not high (in this case, we have 9 different values), then a relative efficiency of the QGA is to be expected. When the number of these values is higher, the classical GA tends to be more efficient.
+
+This is because the QGA needs to define a number of qubits that is the integer ceiling value of log(n) (in our case n=9, so the number of required qubits is 3). The length of the solution is given by the product of the length of the genome (in our case 9) by the number of qubits necessary for each element of the genome.
+
+In the particular case of the TSP, the greater length of the solution penalizes the QGA in the management of the solutions that present the same city more than once.
+

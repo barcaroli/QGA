@@ -18,6 +18,8 @@ knitr::opts_chunk$set(fig.width=6, fig.height=4,
   comment = "#>"
 )
 library(QGA)
+if (!require(genalg)) install.packages("genalg", dependencies=TRUE)
+library(genalg)
 ```
 
 # Introduction
@@ -39,7 +41,7 @@ The Pauli-X gate is equivalent to the classical mutation operator and determines
 
 The package has been developed in such a way as to permit a complete separation between the “engine”, and the particular problem subject to combinatorial optimization. 
 
-In the following, the implementation of three specific problems will be presented by illustrating the case of the "knapsack" problem.
+In the following, the use of the QGA will be presented by illustrating the case of the "knapsack" problem.
 
 
 # Knapsack 
@@ -138,7 +140,7 @@ knapsackSolution  <- QGA(popsize,
 ```
 
 ```{r, eval=TRUE, echo=FALSE, include=FALSE}
-load("knapsackSolution.RData")
+load("knapsackSolutionQGA.RData")
 ```
 
 
@@ -161,6 +163,7 @@ The plot indicates that the number of iterations was enough to obtain a solution
 best <- knapsackSolution[[1]] - 1
 sum(best)
 ```
+
 That is, 193 items out of 500 have been included in the knapsack.
 
 ```{r}
@@ -169,6 +172,50 @@ maxweight
 ```
 The sum of the weights of included items is very close to the constrained maximum weight.
 
+## Comparison with the classic GA
+
+We can compare this solution with the one obtained by applying a classic GA, the one implemented in the "genalg" package:
+
+```{r eval=FALSE}
+evaluate <- function(solution) {
+  tot_items <- sum(solution)
+  # Penalization
+  if (sum(items$weight[solution]) > maxweight) {
+    tot_items <- tot_items - (sum(items$weight[solution]) - maxweight)  
+  }
+  return(-tot_items)
+}
+solutionGA <- rbga.bin(size=nrow(items),
+         suggestions=NULL,
+         popSize=20, 
+         iters=1000, 
+         elitism=NA, 
+         zeroToOneRatio=round(maxweight*10/sum(items$weight)),
+         evalFunc=evaluate)
+```
+
+```{r include=FALSE}
+load("knapsackSolutionGA.RData")
+```
+
+
+```{r}
+filter = solutionGA$evaluations == min(solutionGA$evaluations)
+bestObjectCount = sum(rep(1, solutionGA$popSize)[filter])
+if (bestObjectCount > 1) {
+  bestSolution = solutionGA$population[filter, ][1, 
+  ]
+} else {
+  bestSolution = solutionGA$population[filter, ]
+}
+sum(bestSolution)
+sum(items$weight[bestSolution])
+maxweight
+```
+The classic GA gives exactly the same results than the QGA.
+
+There are situations in which QGA performs better (see the "clustering" example in the Articles section), and other situations in which the opposite happens. 
+In general, when the number of values that each element in the genome can assume is not high, then a relative efficiency of the QGA is to be expected with respect to the classical GA. When the number of these values is high, the classical GA tends to be more efficient.
 
 
 # References

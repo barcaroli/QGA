@@ -105,7 +105,8 @@ solutionQGA <- QGA(
                 progress = FALSE,
                 verbose = FALSE,
                 eval_fitness = airline_hub,
-                eval_func_inputs = input)
+                eval_func_inputs = input,
+                stop_iters = 150)
 ```
 
 

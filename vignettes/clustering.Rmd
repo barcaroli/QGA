@@ -18,9 +18,9 @@ knitr::opts_chunk$set(fig.width=6, fig.height=4,
   collapse = TRUE,
   comment = "#>"
 )
-# if (!require(bookdown)) install.packages("bookdown", dependencies=TRUE)
-# library(bookdown)
 library(QGA)
+if (!require(genalg)) install.packages("genalg", dependencies=TRUE)
+library(genalg)
 ```
 
 
@@ -28,8 +28,24 @@ library(QGA)
 
 "Cluster analysis or clustering is the task of grouping a set of objects in such a way that objects in the same group (called a cluster) are more similar (in some specific sense defined by the analyst) to each other than to those in other groups (clusters)." (from Wikipedia).
 In our study, we consider the multivariate case, where clustering is done considering more than one variable.
+First, we apply the Quantum Genetic Algorithm, then a classical GA, and compare their results.
 
-## Fitness evaluation
+## Prepare data 
+
+We make use of the "iris" dataset:
+
+```{r}
+data(iris)
+vars <- colnames(iris)[1:4]
+vars
+```
+
+The above four variables will be used in clustering.
+
+
+## Quantum GA application
+
+### Fitness evaluation
 
 The following fitness evaluation function is defined:
 
@@ -58,19 +74,9 @@ This function receives as input parameters:
 * solution (the current solution to be evaluated)
 * eval_func_inputs (a list including the dataframe to be analyzed, and the set of variables to be considered in the clustering)
 
-## Prepare data 
 
-We make use of the "iris" dataset:
 
-```{r}
-data(iris)
-vars <- colnames(iris)[1:4]
-vars
-```
-
-The above four variables will be used in clustering.
-
-## Optimization
+### Optimization
 
 We define the Genome parameter as the number of entries in the "iris" dataset.
 The number of values is set equal to the 3.
@@ -81,7 +87,7 @@ nclust = 3
 popsize = 20
 Genome = nrow(iris)
 set.seed(1234)
-solutionQGA <- QGA(popsize,
+CLUSTsolution <- QGA(popsize,
                 generation_max = 1500,
                 nvalues_sol = nclust,
                 Genome,
@@ -96,15 +102,16 @@ solutionQGA <- QGA(popsize,
                 verbose = FALSE,
                 progress = FALSE,
                 eval_fitness = clustering,
-                eval_func_inputs = list(iris, vars))
+                eval_func_inputs = list(iris, vars),
+                stop_iters = 300)
 ```
 
 ```{r, eval=TRUE, echo=FALSE, include=FALSE}
-load("clustering.RData")
+load("clustering_QGA.RData")
 ```
 
 
-## Analysis of the solution
+### Analysis of the solution
 
 
 ```{r}
@@ -115,10 +122,15 @@ The plot indicates that the number of iterations was enough to obtain a solution
 
 ```{r}
 solution <- CLUSTsolution[[1]]
-table(solution)
+fitnessQGA <- 0
+df <- iris
+for (v in vars) {
+  cv <- tapply(df[,v],solution,FUN=sd) / tapply(df[,v],solution,FUN=mean)
+  cv <- ifelse(is.na(cv),maxvalue,cv)
+  fitnessQGA <- fitnessQGA + sum(cv)
+}
+fitnessQGA
 ```
-
-We have 3 perfectly balanced clusters. 
 
 We can try to understand the quality of these clusters by comparing them to the "Species" variable in the dataset:
 
@@ -128,3 +140,97 @@ xtabs( ~ Species + cluster, data=iris)
 ```
 
 It seems that the cluster values can predict quite well the Species of the iris flowers, with only 10 misclassifications out of 150.
+
+## Classical GA application
+
+We can now compare these results with those obtained by a classical genetic algorithm, the one implemented in the R package "genalg".
+
+### Fitness evaluation
+
+The fitness function:
+
+```{r}
+evaluate <- function(solution) {
+  solution <- round(solution)
+  maxvalue <- 5
+  penalfactor <- 2
+  fitness <- 0
+  for (v in vars) {
+    cv <- tapply(iris[,v],solution,FUN=sd) / tapply(iris[,v],solution,FUN=mean)
+    cv <- ifelse(is.na(cv),maxvalue,cv)
+    fitness <- fitness + sum(cv)
+  }
+  b <- table(solution)/nrow(iris)
+  # Penalisation on unbalanced clusters
+  fitness <- fitness + penalfactor * (sum(abs(b - c(rep(1/(length(b)),length(b))))))
+  return(fitness)
+}
+```
+
+### Optimization
+
+To ensure good results to the GA we give a number of iterations (2500) that is much higher than the one given to the QGA (1500).
+
+```{r eval=FALSE}
+set.seed(1234)
+solution_genalg <- rbga(stringMin=c(rep(1,nrow(iris))), 
+                   stringMax=c(rep(nclust,nrow(iris))),
+                   popSize=20, 
+                   iters=3000, 
+                   elitism=NA, 
+                   mutationChance = 5/(nrow(iris)+1),
+                   evalFunc=evaluate)
+```
+
+```{r include=FALSE}
+load("solution_genalg.RData")
+```
+
+```{r}
+plot(solution_genalg)
+```
+
+### Analysis of the solution
+
+```{r}
+filter = solution_genalg$evaluations == min(solution_genalg$evaluations)
+bestObjectCount = sum(rep(1, solution_genalg$popSize)[filter])
+if (bestObjectCount > 1) {
+  bestSolution = solution_genalg$population[filter, ][1, 
+  ]
+} else {
+  bestSolution = solution_genalg$population[filter, ]
+}
+bestSolution <- round(bestSolution)
+fitnessGA <- 0
+for (v in vars) {
+  cv <- tapply(iris[,v],bestSolution,FUN=sd) / tapply(iris[,v],bestSolution,FUN=mean)
+  cv <- ifelse(is.na(cv),maxvalue,cv)
+  fitnessGA <- fitnessGA + sum(cv)
+}
+fitnessGA
+```
+```{r}
+fitnessQGA
+```
+Also considering the obtained stratification: 
+
+```{r}
+iris$stratum <- bestSolution
+table(iris$Species, iris$stratum)
+```
+the classic GA one is less in line with the "natural" one.
+
+## Conclusions
+
+In this case, the Quantum GA is more efficient than the classical GA.
+
+In general, when the number of values that each element in the genome can assume is not high (in this case, there are only 3 different values), then a relative efficiency of the QGA is to be expected. When the number of these values is high, the classical GA tends to be more efficient.
+
+This is because the QGA needs to define a number of qubits that is the integer ceiling value of log(n) (in our case n=3, so the number of qubits is 2). The length of the solution is given by the product of the length of the genome (in our case 150) by the number of qubits necessary for each element of the genome, so 150x2=300.
+
+On the contrary, the classical GA can work directly on an integer representation of the values for each element of the genome, so the length of the solution does not increase.
+
+When the n is high, the length of the solution treated by the QGA is much higher than that of the solution treated by the classical GA, so the latter can be more efficient than the former.
+
+
