@@ -193,7 +193,7 @@ evaluate <- function(solution) {
 
 ### Optimization
 
-```{r eavl=FALSE}
+```{r}
 set.seed(1234)
 solutionGA <- rbga(stringMin=c(rep(1,nrow(cities))), 
                      stringMax=c(rep(nrow(cities),nrow(cities))),
@@ -204,9 +204,6 @@ solutionGA <- rbga(stringMin=c(rep(1,nrow(cities))),
 plot(solutionGA)
 ```
 
-```{r include=FALSE}
-load("TSPsolutionGA.Rdata")
-```
 
 
 ### Analysis of the solution
