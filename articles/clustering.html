@@ -94,7 +94,7 @@
                         <h4 data-toc-skip class="author">Giulio
 Barcaroli</h4>
             
-            <h4 data-toc-skip class="date">2024-09-23</h4>
+            <h4 data-toc-skip class="date">2024-09-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/barcaroli/QGA/blob/main/vignettes/clustering.Rmd" class="external-link"><code>vignettes/clustering.Rmd</code></a></small>
       <div class="hidden name"><code>clustering.Rmd</code></div>
@@ -111,12 +111,27 @@ objects in such a way that objects in the same group (called a cluster)
 are more similar (in some specific sense defined by the analyst) to each
 other than to those in other groups (clusters).” (from Wikipedia). In
 our study, we consider the multivariate case, where clustering is done
-considering more than one variable.</p>
+considering more than one variable. First, we apply the Quantum Genetic
+Algorithm, then a classical GA, and compare their results.</p>
 <div class="section level3">
-<h3 id="fitness-evaluation">Fitness evaluation<a class="anchor" aria-label="anchor" href="#fitness-evaluation"></a>
+<h3 id="prepare-data">Prepare data<a class="anchor" aria-label="anchor" href="#prepare-data"></a>
 </h3>
-<p>The following fitness evaluation function is defined:</p>
+<p>We make use of the “iris” dataset:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span></span>
+<span><span class="va">vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span></span>
+<span><span class="va">vars</span></span>
+<span><span class="co">#&gt; [1] "Sepal.Length" "Sepal.Width"  "Petal.Length" "Petal.Width"</span></span></code></pre></div>
+<p>The above four variables will be used in clustering.</p>
+</div>
+<div class="section level3">
+<h3 id="quantum-ga-application">Quantum GA application<a class="anchor" aria-label="anchor" href="#quantum-ga-application"></a>
+</h3>
+<div class="section level4">
+<h4 id="fitness-evaluation">Fitness evaluation<a class="anchor" aria-label="anchor" href="#fitness-evaluation"></a>
+</h4>
+<p>The following fitness evaluation function is defined:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clustering</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span>, <span class="va">eval_func_inputs</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">maxvalue</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
 <span>  <span class="va">penalfactor</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
@@ -141,20 +156,9 @@ considering more than one variable.</p>
 the set of variables to be considered in the clustering)</li>
 </ul>
 </div>
-<div class="section level3">
-<h3 id="prepare-data">Prepare data<a class="anchor" aria-label="anchor" href="#prepare-data"></a>
-</h3>
-<p>We make use of the “iris” dataset:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span></span>
-<span><span class="va">vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span></span>
-<span><span class="va">vars</span></span>
-<span><span class="co">#&gt; [1] "Sepal.Length" "Sepal.Width"  "Petal.Length" "Petal.Width"</span></span></code></pre></div>
-<p>The above four variables will be used in clustering.</p>
-</div>
-<div class="section level3">
-<h3 id="optimization">Optimization<a class="anchor" aria-label="anchor" href="#optimization"></a>
-</h3>
+<div class="section level4">
+<h4 id="optimization">Optimization<a class="anchor" aria-label="anchor" href="#optimization"></a>
+</h4>
 <p>We define the Genome parameter as the number of entries in the “iris”
 dataset. The number of values is set equal to the 3. This means that
 each solution is a vector of 150 elements, each one with an assigned
@@ -165,7 +169,7 @@ value from 1 to 3: each couple element/value indicates which entry
 <span><span class="va">popsize</span> <span class="op">=</span> <span class="fl">20</span></span>
 <span><span class="va">Genome</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
-<span><span class="va">solutionQGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span><span class="va">popsize</span>,</span>
+<span><span class="va">CLUSTsolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span><span class="va">popsize</span>,</span>
 <span>                generation_max <span class="op">=</span> <span class="fl">1500</span>,</span>
 <span>                nvalues_sol <span class="op">=</span> <span class="va">nclust</span>,</span>
 <span>                <span class="va">Genome</span>,</span>
@@ -180,11 +184,12 @@ value from 1 to 3: each couple element/value indicates which entry
 <span>                verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                progress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                eval_fitness <span class="op">=</span> <span class="va">clustering</span>,</span>
-<span>                eval_func_inputs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">iris</span>, <span class="va">vars</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>                eval_func_inputs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">iris</span>, <span class="va">vars</span><span class="op">)</span>,</span>
+<span>                stop_iters <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level3">
-<h3 id="analysis-of-the-solution">Analysis of the solution<a class="anchor" aria-label="anchor" href="#analysis-of-the-solution"></a>
-</h3>
+<div class="section level4">
+<h4 id="analysis-of-the-solution">Analysis of the solution<a class="anchor" aria-label="anchor" href="#analysis-of-the-solution"></a>
+</h4>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">QGA</span><span class="fu">:::</span><span class="fu">plot_Output</span><span class="op">(</span><span class="va">CLUSTsolution</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p><img src="clustering_files/figure-html/unnamed-chunk-5-1.png" width="576"></p>
@@ -192,11 +197,15 @@ value from 1 to 3: each couple element/value indicates which entry
 a solution that is likely to be no further improved.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">CLUSTsolution</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span></span>
-<span><span class="co">#&gt; solution</span></span>
-<span><span class="co">#&gt;  1  2  3 </span></span>
-<span><span class="co">#&gt; 50 50 50</span></span></code></pre></div>
-<p>We have 3 perfectly balanced clusters.</p>
+<span><span class="va">fitnessQGA</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">iris</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">v</span> <span class="kw">in</span> <span class="va">vars</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">df</span><span class="op">[</span>,<span class="va">v</span><span class="op">]</span>,<span class="va">solution</span>,FUN<span class="op">=</span><span class="va">sd</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">df</span><span class="op">[</span>,<span class="va">v</span><span class="op">]</span>,<span class="va">solution</span>,FUN<span class="op">=</span><span class="va">mean</span><span class="op">)</span></span>
+<span>  <span class="va">cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">cv</span><span class="op">)</span>,<span class="va">maxvalue</span>,<span class="va">cv</span><span class="op">)</span></span>
+<span>  <span class="va">fitnessQGA</span> <span class="op">&lt;-</span> <span class="va">fitnessQGA</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">cv</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">fitnessQGA</span></span>
+<span><span class="co">#&gt; [1] 1.62336</span></span></code></pre></div>
 <p>We can try to understand the quality of these clusters by comparing
 them to the “Species” variable in the dataset:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -209,6 +218,109 @@ them to the “Species” variable in the dataset:</p>
 <span><span class="co">#&gt;   virginica   5 45  0</span></span></code></pre></div>
 <p>It seems that the cluster values can predict quite well the Species
 of the iris flowers, with only 10 misclassifications out of 150.</p>
+</div>
+</div>
+<div class="section level3">
+<h3 id="classical-ga-application">Classical GA application<a class="anchor" aria-label="anchor" href="#classical-ga-application"></a>
+</h3>
+<p>We can now compare these results with those obtained by a classical
+genetic algorithm, the one implemented in the R package “genalg”.</p>
+<div class="section level4">
+<h4 id="fitness-evaluation-1">Fitness evaluation<a class="anchor" aria-label="anchor" href="#fitness-evaluation-1"></a>
+</h4>
+<p>The fitness function:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">evaluate</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">solution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span></span>
+<span>  <span class="va">maxvalue</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
+<span>  <span class="va">penalfactor</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
+<span>  <span class="va">fitness</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">v</span> <span class="kw">in</span> <span class="va">vars</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="va">v</span><span class="op">]</span>,<span class="va">solution</span>,FUN<span class="op">=</span><span class="va">sd</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="va">v</span><span class="op">]</span>,<span class="va">solution</span>,FUN<span class="op">=</span><span class="va">mean</span><span class="op">)</span></span>
+<span>    <span class="va">cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">cv</span><span class="op">)</span>,<span class="va">maxvalue</span>,<span class="va">cv</span><span class="op">)</span></span>
+<span>    <span class="va">fitness</span> <span class="op">&lt;-</span> <span class="va">fitness</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">cv</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span></span>
+<span>  <span class="co"># Penalisation on unbalanced clusters</span></span>
+<span>  <span class="va">fitness</span> <span class="op">&lt;-</span> <span class="va">fitness</span> <span class="op">+</span> <span class="va">penalfactor</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">b</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">b</span><span class="op">)</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">b</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">fitness</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="optimization-1">Optimization<a class="anchor" aria-label="anchor" href="#optimization-1"></a>
+</h4>
+<p>To ensure good results to the GA we give a number of iterations
+(2500) that is much higher than the one given to the QGA (1500).</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">solution_genalg</span> <span class="op">&lt;-</span> <span class="fu">rbga</span><span class="op">(</span>stringMin<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, </span>
+<span>                   stringMax<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">nclust</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                   popSize<span class="op">=</span><span class="fl">20</span>, </span>
+<span>                   iters<span class="op">=</span><span class="fl">3000</span>, </span>
+<span>                   elitism<span class="op">=</span><span class="cn">NA</span>, </span>
+<span>                   mutationChance <span class="op">=</span> <span class="fl">5</span><span class="op">/</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>                   evalFunc<span class="op">=</span><span class="va">evaluate</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">solution_genalg</span><span class="op">)</span></span></code></pre></div>
+<p><img src="clustering_files/figure-html/unnamed-chunk-11-1.png" width="576"></p>
+</div>
+<div class="section level4">
+<h4 id="analysis-of-the-solution-1">Analysis of the solution<a class="anchor" aria-label="anchor" href="#analysis-of-the-solution-1"></a>
+</h4>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">filter</span> <span class="op">=</span> <span class="va">solution_genalg</span><span class="op">$</span><span class="va">evaluations</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">solution_genalg</span><span class="op">$</span><span class="va">evaluations</span><span class="op">)</span></span>
+<span><span class="va">bestObjectCount</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">solution_genalg</span><span class="op">$</span><span class="va">popSize</span><span class="op">)</span><span class="op">[</span><span class="va">filter</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="va">bestObjectCount</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">bestSolution</span> <span class="op">=</span> <span class="va">solution_genalg</span><span class="op">$</span><span class="va">population</span><span class="op">[</span><span class="va">filter</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span>, </span>
+<span>  <span class="op">]</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">bestSolution</span> <span class="op">=</span> <span class="va">solution_genalg</span><span class="op">$</span><span class="va">population</span><span class="op">[</span><span class="va">filter</span>, <span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">bestSolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">bestSolution</span><span class="op">)</span></span>
+<span><span class="va">fitnessGA</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">v</span> <span class="kw">in</span> <span class="va">vars</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="va">v</span><span class="op">]</span>,<span class="va">bestSolution</span>,FUN<span class="op">=</span><span class="va">sd</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">iris</span><span class="op">[</span>,<span class="va">v</span><span class="op">]</span>,<span class="va">bestSolution</span>,FUN<span class="op">=</span><span class="va">mean</span><span class="op">)</span></span>
+<span>  <span class="va">cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">cv</span><span class="op">)</span>,<span class="va">maxvalue</span>,<span class="va">cv</span><span class="op">)</span></span>
+<span>  <span class="va">fitnessGA</span> <span class="op">&lt;-</span> <span class="va">fitnessGA</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">cv</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">fitnessGA</span></span>
+<span><span class="co">#&gt; [1] 1.857548</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitnessQGA</span></span>
+<span><span class="co">#&gt; [1] 1.62336</span></span></code></pre></div>
+<p>Also considering the obtained stratification:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">iris</span><span class="op">$</span><span class="va">stratum</span> <span class="op">&lt;-</span> <span class="va">bestSolution</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">iris</span><span class="op">$</span><span class="va">Species</span>, <span class="va">iris</span><span class="op">$</span><span class="va">stratum</span><span class="op">)</span></span>
+<span><span class="co">#&gt;             </span></span>
+<span><span class="co">#&gt;               1  2  3</span></span>
+<span><span class="co">#&gt;   setosa      0 50  0</span></span>
+<span><span class="co">#&gt;   versicolor 12  0 38</span></span>
+<span><span class="co">#&gt;   virginica  38  0 12</span></span></code></pre></div>
+<p>the classic GA one is less in line with the “natural” one.</p>
+</div>
+</div>
+<div class="section level3">
+<h3 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
+</h3>
+<p>In this case, the Quantum GA is more efficient than the classical
+GA.</p>
+<p>In general, when the number of values that each element in the genome
+can assume is not high (in this case, there are only 3 different
+values), then a relative efficiency of the QGA is to be expected. When
+the number of these values is high, the classical GA tends to be more
+efficient.</p>
+<p>This is because the QGA needs to define a number of qubits that is
+the integer ceiling value of log(n) (in our case n=3, so the number of
+qubits is 2). The length of the solution is given by the product of the
+length of the genome (in our case 150) by the number of qubits necessary
+for each element of the genome, so 150x2=300.</p>
+<p>On the contrary, the classical GA can work directly on an integer
+representation of the values for each element of the genome, so the
+length of the solution does not increase.</p>
+<p>When the n is high, the length of the solution treated by the QGA is
+much higher than that of the solution treated by the classical GA, so
+the latter can be more efficient than the former.</p>
 </div>
 </div>
   </div>

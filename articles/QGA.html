@@ -94,7 +94,7 @@
                         <h4 data-toc-skip class="author">Giulio
 Barcaroli</h4>
             
-            <h4 data-toc-skip class="date">2024-09-23</h4>
+            <h4 data-toc-skip class="date">2024-09-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/barcaroli/QGA/blob/main/vignettes/QGA.Rmd" class="external-link"><code>vignettes/QGA.Rmd</code></a></small>
       <div class="hidden name"><code>QGA.Rmd</code></div>
@@ -132,8 +132,8 @@ qubit.</p>
 <p>The package has been developed in such a way as to permit a complete
 separation between the “engine”, and the particular problem subject to
 combinatorial optimization.</p>
-<p>In the following, the implementation of three specific problems will
-be presented by illustrating the case of the “knapsack” problem.</p>
+<p>In the following, the use of the QGA will be presented by
+illustrating the case of the “knapsack” problem.</p>
 </div>
 <div class="section level2">
 <h2 id="knapsack">Knapsack<a class="anchor" aria-label="anchor" href="#knapsack"></a>
@@ -272,6 +272,51 @@ a solution that is likely to be no further improved.</p>
 <span><span class="co">#&gt; [1] 20014.71</span></span></code></pre></div>
 <p>The sum of the weights of included items is very close to the
 constrained maximum weight.</p>
+</div>
+<div class="section level3">
+<h3 id="comparison-with-the-classic-ga">Comparison with the classic GA<a class="anchor" aria-label="anchor" href="#comparison-with-the-classic-ga"></a>
+</h3>
+<p>We can compare this solution with the one obtained by applying a
+classic GA, the one implemented in the “genalg” package:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">evaluate</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">tot_items</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span></span>
+<span>  <span class="co"># Penalization</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">items</span><span class="op">$</span><span class="va">weight</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span><span class="op">)</span> <span class="op">&gt;</span> <span class="va">maxweight</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">tot_items</span> <span class="op">&lt;-</span> <span class="va">tot_items</span> <span class="op">-</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">items</span><span class="op">$</span><span class="va">weight</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span> <span class="va">maxweight</span><span class="op">)</span>  </span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="va">tot_items</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">solutionGA</span> <span class="op">&lt;-</span> <span class="fu">rbga.bin</span><span class="op">(</span>size<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">items</span><span class="op">)</span>,</span>
+<span>         suggestions<span class="op">=</span><span class="cn">NULL</span>,</span>
+<span>         popSize<span class="op">=</span><span class="fl">20</span>, </span>
+<span>         iters<span class="op">=</span><span class="fl">1000</span>, </span>
+<span>         elitism<span class="op">=</span><span class="cn">NA</span>, </span>
+<span>         zeroToOneRatio<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">maxweight</span><span class="op">*</span><span class="fl">10</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">items</span><span class="op">$</span><span class="va">weight</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>         evalFunc<span class="op">=</span><span class="va">evaluate</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">filter</span> <span class="op">=</span> <span class="va">solutionGA</span><span class="op">$</span><span class="va">evaluations</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">solutionGA</span><span class="op">$</span><span class="va">evaluations</span><span class="op">)</span></span>
+<span><span class="va">bestObjectCount</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">solutionGA</span><span class="op">$</span><span class="va">popSize</span><span class="op">)</span><span class="op">[</span><span class="va">filter</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="va">bestObjectCount</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">bestSolution</span> <span class="op">=</span> <span class="va">solutionGA</span><span class="op">$</span><span class="va">population</span><span class="op">[</span><span class="va">filter</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span>, </span>
+<span>  <span class="op">]</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">bestSolution</span> <span class="op">=</span> <span class="va">solutionGA</span><span class="op">$</span><span class="va">population</span><span class="op">[</span><span class="va">filter</span>, <span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">bestSolution</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 193</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">items</span><span class="op">$</span><span class="va">weight</span><span class="op">[</span><span class="va">bestSolution</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 19962.9</span></span>
+<span><span class="va">maxweight</span></span>
+<span><span class="co">#&gt; [1] 20014.71</span></span></code></pre></div>
+<p>The classic GA gives exactly the same results than the QGA.</p>
+<p>There are situations in which QGA performs better (see the
+“clustering” example in the Articles section), and other situations in
+which the opposite happens. In general, when the number of values that
+each element in the genome can assume is not high, then a relative
+efficiency of the QGA is to be expected with respect to the classical
+GA. When the number of these values is high, the classical GA tends to
+be more efficient.</p>
 </div>
 </div>
 <div class="section level2">

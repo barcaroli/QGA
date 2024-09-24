@@ -94,7 +94,7 @@
                         <h4 data-toc-skip class="author">Giulio
 Barcaroli</h4>
             
-            <h4 data-toc-skip class="date">2024-09-23</h4>
+            <h4 data-toc-skip class="date">2024-09-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/barcaroli/QGA/blob/main/vignettes/TSP.Rmd" class="external-link"><code>vignettes/TSP.Rmd</code></a></small>
       <div class="hidden name"><code>TSP.Rmd</code></div>
@@ -113,11 +113,39 @@ possible route that visits each city exactly once and returns to the
 origin city?” It is an NP-hard problem in combinatorial optimization,
 important in theoretical computer science and operations research.”
 (from Wikipedia).</p>
-<div class="section level3">
-<h3 id="fitness-evaluation">Fitness evaluation<a class="anchor" aria-label="anchor" href="#fitness-evaluation"></a>
-</h3>
-<p>The following fitness evaluation function is defined:</p>
+<p>First, we apply the Quantum Genetic Algorithm, then a classical GA,
+and compare their results.</p>
+</div>
+<div class="section level2">
+<h2 id="prepare-data">Prepare data<a class="anchor" aria-label="anchor" href="#prepare-data"></a>
+</h2>
+<p>An external file with a list of cities (names and coordinates) is
+read, and a number of them is selected (here, only 9):</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cities</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"TSP_cities.csv"</span><span class="op">)</span></span>
+<span><span class="va">ncities</span> <span class="op">&lt;-</span> <span class="fl">9</span></span>
+<span><span class="va">cities</span> <span class="op">&lt;-</span> <span class="va">cities</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">ncities</span><span class="op">)</span>,<span class="op">]</span></span>
+<span><span class="va">cities</span></span>
+<span><span class="co">#&gt;       city     x     y</span></span>
+<span><span class="co">#&gt; 1    Turin  7.68 45.06</span></span>
+<span><span class="co">#&gt; 2    Milan  9.19 45.46</span></span>
+<span><span class="co">#&gt; 3    Genoa  8.93 44.40</span></span>
+<span><span class="co">#&gt; 4   Venice 12.33 45.43</span></span>
+<span><span class="co">#&gt; 5  Bologna 11.34 44.49</span></span>
+<span><span class="co">#&gt; 6 Florence 11.25 43.76</span></span>
+<span><span class="co">#&gt; 7  Pescara 13.95 42.31</span></span>
+<span><span class="co">#&gt; 8     Rome 12.48 41.89</span></span>
+<span><span class="co">#&gt; 9   Naples 14.24 40.83</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="qga-application">QGA application<a class="anchor" aria-label="anchor" href="#qga-application"></a>
+</h2>
+</div>
+<div class="section level2">
+<h2 id="fitness-evaluation">Fitness evaluation<a class="anchor" aria-label="anchor" href="#fitness-evaluation"></a>
+</h2>
+<p>The following fitness evaluation function is defined:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">TravellingSalesman</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span>,<span class="va">distance</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">l</span> <span class="op">=</span> <span class="fl">0.0</span>  </span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -136,27 +164,6 @@ important in theoretical computer science and operations research.”
 <li>distance (the matrix of distances between the cities to be
 visited)</li>
 </ul>
-</div>
-<div class="section level3">
-<h3 id="prepare-data">Prepare data<a class="anchor" aria-label="anchor" href="#prepare-data"></a>
-</h3>
-<p>An external file with a list of cities (names and coordinates) is
-read, and a number of them is selected (here, only 9):</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cities</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"TSP_cities.csv"</span><span class="op">)</span></span>
-<span><span class="va">ncities</span> <span class="op">&lt;-</span> <span class="fl">9</span></span>
-<span><span class="va">cities</span> <span class="op">&lt;-</span> <span class="va">cities</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">ncities</span><span class="op">)</span>,<span class="op">]</span></span>
-<span><span class="va">cities</span></span>
-<span><span class="co">#&gt;       city     x     y</span></span>
-<span><span class="co">#&gt; 1    Turin  7.68 45.06</span></span>
-<span><span class="co">#&gt; 2    Milan  9.19 45.46</span></span>
-<span><span class="co">#&gt; 3    Genoa  8.93 44.40</span></span>
-<span><span class="co">#&gt; 4   Venice 12.33 45.43</span></span>
-<span><span class="co">#&gt; 5  Bologna 11.34 44.49</span></span>
-<span><span class="co">#&gt; 6 Florence 11.25 43.76</span></span>
-<span><span class="co">#&gt; 7  Pescara 13.95 42.31</span></span>
-<span><span class="co">#&gt; 8     Rome 12.48 41.89</span></span>
-<span><span class="co">#&gt; 9   Naples 14.24 40.83</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">distance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/dist.html" class="external-link">dist</a></span><span class="op">(</span><span class="va">cities</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">distance</span></span>
@@ -173,7 +180,6 @@ read, and a number of them is selected (here, only 9):</p>
 <p>Here, the distances have been calculated simply as Euclidean
 distances: clearly, in more realistic cases they should be calculated
 based on a road map.</p>
-</div>
 <div class="section level3">
 <h3 id="optimization">Optimization<a class="anchor" aria-label="anchor" href="#optimization"></a>
 </h3>
@@ -190,7 +196,7 @@ operator. Moreover, we want to iterate 1000 times, each time considering
 <span><span class="va">Genome</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cities</span><span class="op">)</span></span>
 <span><span class="va">nvalues_sol</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cities</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4321</span><span class="op">)</span></span>
-<span><span class="va">TSPsolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span><span class="va">popsize</span>,</span>
+<span><span class="va">solutionQGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span><span class="va">popsize</span>,</span>
 <span>                generation_max <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>                <span class="va">nvalues_sol</span>,</span>
 <span>                <span class="va">Genome</span>,</span>
@@ -205,9 +211,10 @@ operator. Moreover, we want to iterate 1000 times, each time considering
 <span>                verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                progress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                eval_fitness <span class="op">=</span> <span class="va">TravellingSalesman</span>,</span>
-<span>                eval_func_inputs <span class="op">=</span> <span class="va">distance</span><span class="op">)</span></span></code></pre></div>
+<span>                eval_func_inputs <span class="op">=</span> <span class="va">distance</span>,</span>
+<span>                stop_iters <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">QGA</span><span class="fu">:::</span><span class="fu">plot_Output</span><span class="op">(</span><span class="va">TSPsolution</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">QGA</span><span class="fu">:::</span><span class="fu">plot_Output</span><span class="op">(</span><span class="va">solutionQGA</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p><img src="TSP_files/figure-html/unnamed-chunk-6-1.png" width="768"></p>
 <p>The plot indicates that the number of iterations was enough to obtain
 a solution that is likely to be no further improved.</p>
@@ -216,11 +223,20 @@ a solution that is likely to be no further improved.</p>
 <h3 id="analysis-of-the-solution">Analysis of the solution<a class="anchor" aria-label="anchor" href="#analysis-of-the-solution"></a>
 </h3>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">TSPsolution</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solutionQGA</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">cities</span><span class="op">$</span><span class="va">city</span><span class="op">[</span><span class="va">solution</span><span class="op">]</span></span>
 <span><span class="co">#&gt; [1] "Milan"    "Venice"   "Pescara"  "Naples"   "Rome"     "Florence" "Bologna"  "Genoa"    "Turin"</span></span>
 <span><span class="va">cities_tsp</span> <span class="op">&lt;-</span> <span class="va">cities</span><span class="op">[</span><span class="va">solution</span>,<span class="op">]</span></span></code></pre></div>
+<p>The sum of distances:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">l</span> <span class="op">=</span> <span class="fl">0.0</span>  </span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">l</span> <span class="op">=</span> <span class="va">l</span><span class="op">+</span><span class="va">distance</span><span class="op">[</span><span class="va">solution</span><span class="op">[</span><span class="va">i</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">solution</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">l</span> <span class="op">=</span> <span class="va">l</span> <span class="op">+</span> <span class="va">distance</span><span class="op">[</span><span class="va">solution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">solution</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">l</span></span>
+<span><span class="co">#&gt; [1] 18.57944</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va">maps</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"maps"</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"tidyverse"</span><span class="op">)</span></span>
@@ -245,24 +261,117 @@ a solution that is likely to be no further improved.</p>
 <span>            hjust <span class="op">=</span> <span class="fl">0</span>, vjust <span class="op">=</span> <span class="fl">0</span>, nudge_x <span class="op">=</span> <span class="fl">0.1</span>, nudge_y <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="fl">1.3</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Best itinerary"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"TSP best itinerary (QGA)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span>, size <span class="op">=</span> <span class="fl">16</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">xlim</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">19</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fl">36</span>, <span class="fl">47</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gg</span><span class="op">)</span></span></code></pre></div>
-<p><img src="TSP_files/figure-html/unnamed-chunk-8-1.png" width="768"></p>
+<p><img src="TSP_files/figure-html/unnamed-chunk-9-1.png" width="768"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="classical-ga-application">Classical GA application<a class="anchor" aria-label="anchor" href="#classical-ga-application"></a>
+</h2>
+<div class="section level3">
+<h3 id="evaluation-function">Evaluation function<a class="anchor" aria-label="anchor" href="#evaluation-function"></a>
+</h3>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">evaluate</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">solution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span></span>
+<span>  <span class="va">l</span> <span class="op">=</span> <span class="fl">0.0</span>  </span>
+<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">l</span> <span class="op">=</span> <span class="va">l</span><span class="op">+</span><span class="va">distance</span><span class="op">[</span><span class="va">solution</span><span class="op">[</span><span class="va">i</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">solution</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="va">l</span> <span class="op">=</span> <span class="va">l</span> <span class="op">+</span> <span class="va">distance</span><span class="op">[</span><span class="va">solution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">solution</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
+<span>  <span class="va">penal</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">distance</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">solution</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">distance</span><span class="op">)</span><span class="op">/</span><span class="fl">10</span></span>
+<span>  <span class="va">cost</span> <span class="op">&lt;-</span> <span class="va">penal</span><span class="op">+</span><span class="va">l</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">cost</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="warning">Warning<a class="anchor" aria-label="anchor" href="#warning"></a>
+<h3 id="optimization-1">Optimization<a class="anchor" aria-label="anchor" href="#optimization-1"></a>
 </h3>
-<p>This seems to be a reasonable solution, but it has to be noted that,
-with a higher number of cities, it becomes more and more difficult to
-find acceptable solutions. For instance, with 10 cities the algorithm
-gives unreasonable solutions.</p>
-<p>This depends on the fact that the efficiency of the quantum GA
-decreases with the number of the possible values given to each element
-of the genome (parameter n_val_sol). In that case, traditional genetic
-algorithms (GA, genalg, etc) can be more efficient.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">solutionGA</span> <span class="op">&lt;-</span> <span class="fu">rbga</span><span class="op">(</span>stringMin<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cities</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, </span>
+<span>                     stringMax<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cities</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cities</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                     popSize<span class="op">=</span><span class="fl">20</span>, </span>
+<span>                     iters<span class="op">=</span><span class="fl">2000</span>, </span>
+<span>                     elitism<span class="op">=</span><span class="cn">NA</span>, </span>
+<span>                     evalFunc<span class="op">=</span><span class="va">evaluate</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">solutionGA</span><span class="op">)</span></span></code></pre></div>
+<p><img src="TSP_files/figure-html/unnamed-chunk-11-1.png" width="768"></p>
 </div>
+<div class="section level3">
+<h3 id="analysis-of-the-solution-1">Analysis of the solution<a class="anchor" aria-label="anchor" href="#analysis-of-the-solution-1"></a>
+</h3>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">filter</span> <span class="op">=</span> <span class="va">solutionGA</span><span class="op">$</span><span class="va">evaluations</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">solutionGA</span><span class="op">$</span><span class="va">evaluations</span><span class="op">)</span></span>
+<span><span class="va">bestObjectCount</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">solutionGA</span><span class="op">$</span><span class="va">popSize</span><span class="op">)</span><span class="op">[</span><span class="va">filter</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="va">bestObjectCount</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">bestSolution</span> <span class="op">=</span> <span class="va">solutionGA</span><span class="op">$</span><span class="va">population</span><span class="op">[</span><span class="va">filter</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span>, </span>
+<span>  <span class="op">]</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">bestSolution</span> <span class="op">=</span> <span class="va">solutionGA</span><span class="op">$</span><span class="va">population</span><span class="op">[</span><span class="va">filter</span>, <span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">bestSolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">bestSolution</span><span class="op">)</span></span>
+<span><span class="va">cities</span><span class="op">$</span><span class="va">city</span><span class="op">[</span><span class="va">bestSolution</span><span class="op">]</span></span>
+<span><span class="co">#&gt; [1] "Rome"     "Florence" "Genoa"    "Turin"    "Milan"    "Bologna"  "Venice"   "Pescara"  "Naples"</span></span>
+<span><span class="va">cities_tsp</span> <span class="op">&lt;-</span> <span class="va">cities</span><span class="op">[</span><span class="va">bestSolution</span>,<span class="op">]</span></span></code></pre></div>
+<p>The sum of distances:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">l</span> <span class="op">=</span> <span class="fl">0.0</span>  </span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">bestSolution</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">l</span> <span class="op">=</span> <span class="va">l</span><span class="op">+</span><span class="va">distance</span><span class="op">[</span><span class="va">bestSolution</span><span class="op">[</span><span class="va">i</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">bestSolution</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">l</span> <span class="op">=</span> <span class="va">l</span> <span class="op">+</span> <span class="va">distance</span><span class="op">[</span><span class="va">bestSolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="va">bestSolution</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">bestSolution</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="va">l</span></span>
+<span><span class="co">#&gt; [1] 18.42261</span></span></code></pre></div>
+<p>The fitness of the GA solution is lower than the one by the QGA.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">italy_map</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/map_data.html" class="external-link">map_data</a></span><span class="op">(</span><span class="st">"italy"</span><span class="op">)</span></span>
+<span><span class="va">lines</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="va">cities_tsp</span><span class="op">$</span><span class="va">x</span><span class="op">[</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cities_tsp</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  y <span class="op">=</span> <span class="va">cities_tsp</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cities_tsp</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  xend <span class="op">=</span> <span class="va">cities_tsp</span><span class="op">$</span><span class="va">x</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  yend <span class="op">=</span> <span class="va">cities_tsp</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">gg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_polygon.html" class="external-link">geom_polygon</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">italy_map</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">long</span>, y <span class="op">=</span> <span class="va">lat</span>, group <span class="op">=</span> <span class="va">group</span><span class="op">)</span>, </span>
+<span>               fill <span class="op">=</span> <span class="st">"white"</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">lines</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, xend <span class="op">=</span> <span class="va">xend</span>, yend <span class="op">=</span> <span class="va">yend</span><span class="op">)</span>,</span>
+<span>               color <span class="op">=</span> <span class="st">"red"</span>, size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">cities_tsp</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"blue"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">cities_tsp</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, label <span class="op">=</span> <span class="va">city</span><span class="op">)</span>, </span>
+<span>            hjust <span class="op">=</span> <span class="fl">0</span>, vjust <span class="op">=</span> <span class="fl">0</span>, nudge_x <span class="op">=</span> <span class="fl">0.1</span>, nudge_y <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="fl">1.3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"TSP best itinerary (classic GA)"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span>, size <span class="op">=</span> <span class="fl">16</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">xlim</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">19</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fl">36</span>, <span class="fl">47</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">gg</span><span class="op">)</span></span></code></pre></div>
+<p><img src="TSP_files/figure-html/unnamed-chunk-14-1.png" width="768"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
+</h2>
+<p>In this case, the performance of the QGA is equivalent than the one
+of the classical GA (but the number of iterations of GA is the
+double).</p>
+<p>Honestly, it has to be said that, increasing the number of the
+cities, GA outperforms QGA in the Traveller Salesman Problem.</p>
+<p>In general, when the number of values that each element in the genome
+can assume is not high (in this case, we have 9 different values), then
+a relative efficiency of the QGA is to be expected. When the number of
+these values is higher, the classical GA tends to be more efficient.</p>
+<p>This is because the QGA needs to define a number of qubits that is
+the integer ceiling value of log(n) (in our case n=9, so the number of
+required qubits is 3). The length of the solution is given by the
+product of the length of the genome (in our case 9) by the number of
+qubits necessary for each element of the genome.</p>
+<p>In the particular case of the TSP, the greater length of the solution
+penalizes the QGA in the management of the solutions that present the
+same city more than once.</p>
 </div>
   </div>
 
