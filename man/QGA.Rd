@@ -22,7 +22,7 @@ QGA(
   eval_fitness,
   eval_func_inputs,
   stop_limit = NULL,
-  stop_iters = 20
+  stop_iters = NULL
 )
 }
 \arguments{
@@ -70,7 +70,7 @@ to each element of the chromosome (default is 1/(Genome+1))}
 
 \item{stop_limit}{value to stop the iterations if the fitness is higher than a given value}
 
-\item{stop_iters}{number of iterations without improvement of fitness before stopping (default is 100)}
+\item{stop_iters}{number of iterations without improvement of fitness before stopping}
 }
 \value{
 A numeric vector (positive integers) giving the best solution obtained by the QGA
@@ -130,7 +130,7 @@ solutionQGA <- QGA(popsize = 20,
                 eval_fitness = KnapsackProblem,
                 eval_func_inputs = list(items,
                                         maxweight),
-                stop_iters=50)
+                stop_iters = NULL)
 #----------------------
 # Analyze results
 solution <- solutionQGA[[1]]

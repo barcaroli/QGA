@@ -37,7 +37,7 @@
 #' @param eval_fitness name of the function that will be used to evaluate the fitness of each solution
 #' @param eval_func_inputs specific inputs required by the eval_fitness function
 #' @param stop_limit value to stop the iterations if the fitness is higher than a given value
-#' @param stop_iters number of iterations without improvement of fitness before stopping (default is 100)
+#' @param stop_iters number of iterations without improvement of fitness before stopping 
 #' 
 #' 
 #' @export
@@ -91,7 +91,7 @@
 #'                 eval_fitness = KnapsackProblem,
 #'                 eval_func_inputs = list(items,
 #'                                         maxweight),
-#'                 stop_iters=50)
+#'                 stop_iters = NULL)
 #' #----------------------
 #' # Analyze results
 #' solution <- solutionQGA[[1]]
@@ -118,7 +118,7 @@ QGA <- function(popsize = 20,
                 eval_fitness,
                 eval_func_inputs,
                 stop_limit = NULL,
-                stop_iters = 20) {
+                stop_iters = NULL) {
   # check
   if (is.null(nvalues_sol)) stop("nvalues_sol parameter value missing!")
   if (is.null(Genome)) stop("Genome parameter value missing!")
@@ -218,9 +218,9 @@ QGA <- function(popsize = 20,
   old_fitness <- -Inf
   while (generation <= generation_max & 
          stop_limit > fitness_max &
-         (!res$fitness_best[iter+1] - old_fitness == 0)) {
+         (!is.null(stop_iters) & (!res$fitness_best[iter+1] - old_fitness == 0))) {
     iter <- iter + 1
-    if (iter > stop_iters) old_fitness <- res$fitness_best[iter-stop_iters]
+    if (!is.null(stop_iters) & (iter > stop_iters)) old_fitness <- res$fitness_best[iter-stop_iters]
     if (progress == TRUE) setTxtProgressBar(pb, generation)
     # cat("\n Iteration: ",generation)
     theta <- thetainit - ((thetainit - thetaend) / generation_max) * generation
