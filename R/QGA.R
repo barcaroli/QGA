@@ -220,7 +220,11 @@ QGA <- function(popsize = 20,
          stop_limit > fitness_max &
          (is.null(stop_iters) | (!res$fitness_best[iter+1] - old_fitness == 0))) {
     iter <- iter + 1
-    if (!is.null(stop_iters) & (iter > stop_iters)) old_fitness <- res$fitness_best[iter-stop_iters]
+    if (!is.null(stop_iters)) {
+      if (iter > stop_iters) {
+        old_fitness <- res$fitness_best[iter-stop_iters]
+      }
+    } 
     if (progress == TRUE) setTxtProgressBar(pb, generation)
     # cat("\n Iteration: ",generation)
     theta <- thetainit - ((thetainit - thetaend) / generation_max) * generation
