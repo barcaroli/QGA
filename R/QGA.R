@@ -158,11 +158,10 @@ QGA <- function(popsize = 20,
   # Rotation Q-gate
   rot <- array(0.0, c(2, 2))
   
-
   #----------
   # EXECUTION                   
   #----------
-
+  
   res <- NULL
   res$generation <- c(1:(generation_max + 1))
   res$fitness_average <- rep(0, (generation_max + 1))
