@@ -105,8 +105,8 @@ QGA <- function(popsize = 20,
                 generation_max = 200,
                 nvalues_sol,
                 Genome,
-                thetainit = 3.1415926535 * 0.05,
-                thetaend = 3.1415926535 * 0.025,
+                thetainit = pi * 0.05,
+                thetaend = pi * 0.025,
                 pop_mutation_rate_init = NULL,
                 pop_mutation_rate_end = NULL,
                 mutation_rate_init = NULL,
@@ -118,63 +118,53 @@ QGA <- function(popsize = 20,
                 eval_fitness,
                 eval_func_inputs,
                 stop_limit = NULL,
-                stop_iters = NULL) {
-  # Parallel setup
-  n_cores <- parallel::detectCores() - 1
-  cl <- makeCluster(n_cores)
-  registerDoParallel(cl)
-  
-  on.exit({
-    stopCluster(cl)
-    registerDoSEQ()
-  })
+                stop_iters = NULL,
+                use_parallel = TRUE) {
+  # Parallel setup (optional)
+  if (use_parallel && popsize > 4) {
+    n_cores <- max(1, parallel::detectCores() - 1)
+    cl <- parallel::makeCluster(n_cores)
+    doParallel::registerDoParallel(cl)
+    on.exit({parallel::stopCluster(cl); doParallel::registerDoSEQ()}, add = TRUE)
+  } else {
+    foreach::registerDoSEQ()
+  }
   
   if (is.null(nvalues_sol)) stop("nvalues_sol parameter value missing!")
   if (is.null(Genome)) stop("Genome parameter value missing!")
   
-  if (is.null(pop_mutation_rate_init) & mutation_flag == TRUE) pop_mutation_rate_init = 1/(popsize+1)
-  if (is.null(pop_mutation_rate_end) & mutation_flag == TRUE) pop_mutation_rate_end = 1/(popsize+1)
-  if (is.null(mutation_rate_init) & mutation_flag == TRUE) mutation_rate_init = 1/(Genome+1)
-  if (is.null(mutation_rate_end) & mutation_flag == TRUE) mutation_rate_end = 1/(Genome+1)
+  if (is.null(pop_mutation_rate_init) & mutation_flag) pop_mutation_rate_init <- 1/(popsize+1)
+  if (is.null(pop_mutation_rate_end) & mutation_flag) pop_mutation_rate_end <- 1/(popsize+1)
+  if (is.null(mutation_rate_init) & mutation_flag) mutation_rate_init <- 1/(Genome+1)
+  if (is.null(mutation_rate_end) & mutation_flag) mutation_rate_end <- 1/(Genome+1)
   
-  n = 0
-  while (nvalues_sol > 2^n) {
-    n = n+1
-  }
-  geneLength = n 
-  genomeLength <- Genome * geneLength 
+  n <- 0
+  while (nvalues_sol > 2^n) n <- n + 1
+  geneLength <- n
+  genomeLength <- Genome * geneLength
   
   qubit_0 <- array(c(1, 0), c(2, 1))
-  qubit_1 <- array(c(0, 1), c(2, 1))
+  h <- array(c(1 / sqrt(2), 1 / sqrt(2), 1 / sqrt(2), -1 / sqrt(2)), c(2, 2))
   
-  fitness <- array(0.0, c(1, popsize))
+  # Initialize result storage
+  res <- data.frame(
+    generation = seq_len(generation_max + 1),
+    fitness_average = rep(0, generation_max + 1),
+    fitness_best = rep(0, generation_max + 1)
+  )
   
-  q_alphabeta <- array(0.0, c(genomeLength, 2, popsize))
-  work_q_alphabeta <- array(0.0, c(genomeLength, 2, popsize))
-  
-  chromosome <- array(0, c(popsize, genomeLength))
-  best_chromosome <- array(0.0, generation_max)
-  
-  h <- array(c(1 / sqrt(2.0), 1 / sqrt(2.0), 1 / sqrt(2.0), -1 / sqrt(2.0)), c(2, 2))
-  rot <- array(0.0, c(2, 2))
-  
-  res <- NULL
-  res$generation <- c(1:(generation_max + 1))
-  res$fitness_average <- rep(0, (generation_max + 1))
-  res$fitness_best <- rep(0, (generation_max + 1))
-  res <- as.data.frame(res)
-  
-  fitness_best <- -999999
+  fitness_best <- -Inf
   solution_best <- rep(0, genomeLength)
   generation <- 1
   theta <- thetainit
   
-  q_alphabeta <- generate_pop(popsize, genomeLength, q_alphabeta, rot, theta, h, qubit_0)
-  chromosome <- measure(popsize, genomeLength, q_alphabeta, chromosome)
+  q_alphabeta <- generate_pop(popsize, genomeLength, array(0.0, c(genomeLength, 2, popsize)), 
+                              array(0.0, c(2, 2)), theta, h, qubit_0)
+  chromosome <- measure(popsize, genomeLength, q_alphabeta, array(0, c(popsize, genomeLength)))
   chromosome <- repair(popsize, chromosome, geneLength, genomeLength, nvalues_sol, Genome)
   
-  # ----------- PARALLELIZED FITNESS EVALUATION -----------
-  fitness <- foreach(i = 1:popsize, .combine = c, .packages = c()) %dopar% {
+  # Fitness evaluation (parallel if enabled)
+  fitness <- foreach(i = 1:popsize, .combine = c) %dopar% {
     eval_fitness(chromosome[i, ], eval_func_inputs)
   }
   fitness_max <- max(fitness)
@@ -189,41 +179,41 @@ QGA <- function(popsize = 20,
   }
   res$fitness_average[generation] <- fitness_average
   res$fitness_best[generation] <- fitness_best
-  if (plotting == TRUE) plot_Output(res[c(1:generation), ])
-  if (verbose == TRUE) cat("\n", generation, ",", fitness_average, ",", fitness_max)
+  if (plotting) plot_Output(res[seq_len(generation), ])
+  if (verbose) cat("\n", generation, ",", fitness_average, ",", fitness_max)
   
-  if (progress == TRUE) pb <- txtProgressBar(min = 0, max = generation_max, style = 3)
+  if (progress) pb <- txtProgressBar(min = 0, max = generation_max, style = 3)
   if (is.null(stop_limit)) stop_limit <- Inf
   iter <- 0
   old_fitness <- -Inf
   
-  while (generation <= generation_max & 
-         stop_limit > fitness_max &
-         (is.null(stop_iters) | (!res$fitness_best[iter+1] - old_fitness == 0))) {
+  # Main evolution loop
+  while (
+    generation <= generation_max &&
+    stop_limit > fitness_max &&
+    (is.null(stop_iters) || iter < stop_iters || (res$fitness_best[generation] - old_fitness != 0))
+  ) {
     iter <- iter + 1
-    if (!is.null(stop_iters)) {
-      if (iter > stop_iters) {
-        old_fitness <- res$fitness_best[iter-stop_iters]
-      }
-    } 
-    if (progress == TRUE) setTxtProgressBar(pb, generation)
+    if (!is.null(stop_iters) && iter > stop_iters) {
+      old_fitness <- res$fitness_best[generation - stop_iters]
+    }
+    if (progress) setTxtProgressBar(pb, generation)
     
-    theta <- thetainit - ((thetainit - thetaend) / generation_max) * generation
-    if (theta < 0) theta <- 0
+    theta <- max(0, thetainit - ((thetainit - thetaend) / generation_max) * generation)
     q_alphabeta <- rotation(chromosome, best_chromosome, generation, genomeLength,
-                            solution_best, q_alphabeta, work_q_alphabeta, popsize, fitness, theta)
+                            solution_best, q_alphabeta, array(0.0, c(genomeLength, 2, popsize)), popsize, fitness, theta)
     generation <- generation + 1
-    pop_mutation_rate = pop_mutation_rate_init - ((pop_mutation_rate_init - pop_mutation_rate_end) / generation_max) * generation
-    mutation_rate = mutation_rate_init - ((mutation_rate_init - mutation_rate_end) / generation_max) * generation
-    if (mutation_flag == TRUE) {
+    pop_mutation_rate <- pop_mutation_rate_init - ((pop_mutation_rate_init - pop_mutation_rate_end) / generation_max) * generation
+    mutation_rate <- mutation_rate_init - ((mutation_rate_init - mutation_rate_end) / generation_max) * generation
+    if (mutation_flag) {
       q_alphabeta <- mutation(pop_mutation_rate, mutation_rate, popsize, chromosome,
-                              solution_best, q_alphabeta, work_q_alphabeta, genomeLength)      
+                              solution_best, q_alphabeta, array(0.0, c(genomeLength, 2, popsize)), genomeLength)
     }
     chromosome <- measure(popsize, genomeLength, q_alphabeta, chromosome)
     chromosome <- repair(popsize, chromosome, geneLength, genomeLength, nvalues_sol, Genome)
     
-    # ----------- PARALLELIZED FITNESS EVALUATION -----------
-    fitness <- foreach(i = 1:popsize, .combine = c, .packages = c()) %dopar% {
+    # Fitness evaluation (parallel if enabled)
+    fitness <- foreach(i = 1:popsize, .combine = c) %dopar% {
       eval_fitness(chromosome[i, ], eval_func_inputs)
     }
     fitness_max <- max(fitness)
@@ -238,20 +228,18 @@ QGA <- function(popsize = 20,
     }
     res$fitness_average[generation] <- fitness_average
     res$fitness_best[generation] <- fitness_best
-    if (plotting == TRUE) plot_Output(res[c(1:generation), ])
-    if (verbose == TRUE) cat("\n", generation, ",", fitness_average, ",", fitness_best)
+    if (plotting) plot_Output(res[seq_len(generation), ])
+    if (verbose) cat("\n", generation, ",", fitness_average, ",", fitness_best)
   }
-  if (progress == TRUE) close(pb)
-  cat("\n *** Best fitness: ",fitness_best)
-  plot_Output(res[c(1:iter), ])
-  solution1 <- array(solution_best,c(geneLength,Genome))
-  solution <- c(rep(0,Genome))
-  for (x in c(1:Genome)) {
-    for (y in c(1:geneLength)) {
-      solution[x] <- solution[x] + solution1[y,x]*2^(geneLength - y) 
-    }
-  }
-  solution <- solution + 1
-  out <- list(solution,res[c(1:iter), ])
+  if (progress) close(pb)
+  cat("\n *** Best fitness: ", fitness_best)
+  plot_Output(res[seq_len(generation), ])
+  
+  # Vectorized solution decoding
+  powers <- 2^((geneLength - 1):0)
+  solution1 <- matrix(solution_best, nrow = geneLength)
+  solution <- as.integer(colSums(solution1 * powers) + 1)
+  
+  out <- list(solution, res[seq_len(generation), ])
   return(out)
 }
