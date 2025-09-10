@@ -1,4 +1,4 @@
-pandoc: 3.1.11
+pandoc: '3.4'
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
@@ -7,7 +7,7 @@ articles:
   functionMax: functionMax.html
   QGA: QGA.html
   TSP: TSP.html
-last_built: 2024-09-25T14:52Z
+last_built: 2025-09-10T17:31Z
 urls:
   reference: https://barcaroli.github.io/QGA//reference
   article: https://barcaroli.github.io/QGA//articles
