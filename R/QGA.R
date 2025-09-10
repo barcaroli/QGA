@@ -125,10 +125,15 @@ QGA <- function(popsize = 20,
   library(doParallel)
   library(foreach)
 
-  numCores <- parallel::detectCores() - 1
-  cl <- makeCluster(numCores)
+  # numCores <- parallel::detectCores() - 1
+  # cl <- makeCluster(numCores)
+  # doParallel::registerDoParallel(cl)
+  
+  numCores <- max(1, parallel::detectCores() - 1)
+  cl <- parallel::makeCluster(numCores)
   doParallel::registerDoParallel(cl)
-
+  on.exit({ try(parallel::stopCluster(cl), silent = TRUE) }, add = TRUE)
+  
   # ---- CHECK E DEFAULT ----
   if (is.null(nvalues_sol)) stop("nvalues_sol parameter value missing!")
   if (is.null(Genome)) stop("Genome parameter value missing!")
@@ -265,9 +270,16 @@ QGA <- function(popsize = 20,
                          nvalues_sol,
                          Genome)
     # --- VALUTAZIONE PARALLELA FITNESS ---
-    fitness_list <- foreach(i = 1:popsize, .combine = c, .packages = c()) %dopar% {
-      eval_fitness(chromosome[i,], eval_func_inputs)
-    }
+    # fitness_list <- foreach(i = 1:popsize, .combine = c, .packages = c()) %dopar% {
+    #   eval_fitness(chromosome[i,], eval_func_inputs)
+    # }
+    fitness_wrapper <- function(sol) eval_fitness(sol, eval_func_inputs)
+    
+    fitness_list <- foreach(i = 1:popsize, .combine = c,
+                            .export   = c("fitness_wrapper"),
+                            .packages = character(0)) %dopar% {
+                              fitness_wrapper(chromosome[i, ])
+                            }
     fitness <- unlist(fitness_list)
     fitness_max <- max(fitness)
     fitness_average <- mean(fitness)
