@@ -94,7 +94,7 @@
                         <h4 data-toc-skip class="author">Giulio
 Barcaroli</h4>
             
-            <h4 data-toc-skip class="date">2025-05-31</h4>
+            <h4 data-toc-skip class="date">2025-09-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/barcaroli/QGA/blob/main/vignettes/functionMax.Rmd" class="external-link"><code>vignettes/functionMax.Rmd</code></a></small>
       <div class="hidden name"><code>functionMax.Rmd</code></div>
@@ -157,22 +157,21 @@ interval.</p>
 <p>First, we define the fitness function:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">functionMax</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">solution</span>, <span class="va">eval_func_inputs</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solution</span> <span class="op">-</span> <span class="fl">1</span></span>
-<span>  <span class="co"># translate from binary to decimal value</span></span>
-<span>  <span class="va">x</span><span class="op">=</span><span class="fl">0</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">Genome</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">x</span><span class="op">=</span><span class="va">x</span><span class="op">+</span><span class="va">solution</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">*</span><span class="fl">2</span><span class="op">^</span><span class="op">(</span><span class="va">Genome</span><span class="op">-</span><span class="va">j</span><span class="op">)</span></span>
+<span>  <span class="va">solution</span> <span class="op">&lt;-</span> <span class="va">solution</span> <span class="op">-</span> <span class="fl">1L</span></span>
+<span>  <span class="va">Genome</span>   <span class="op">&lt;-</span> <span class="va">eval_func_inputs</span><span class="op">$</span><span class="va">Genome</span>  <span class="co"># &lt;-- passa Genome come input!</span></span>
+<span>  </span>
+<span>  <span class="co"># traduci il bitstring (0/1) in intero</span></span>
+<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">Genome</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">x</span> <span class="op">+</span> <span class="va">solution</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">*</span> <span class="fl">2</span><span class="op">^</span><span class="op">(</span><span class="va">Genome</span> <span class="op">-</span> <span class="va">j</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
-<span>  <span class="co"># Normalize the obtained x into the interval 0-15</span></span>
-<span>  <span class="va">x</span><span class="op">=</span><span class="va">x</span><span class="op">*</span><span class="fl">16</span><span class="op">/</span><span class="op">(</span><span class="fl">2</span><span class="op">^</span><span class="va">Genome</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span></span>
-<span>  <span class="co"># replaces the value of x in the function f(x)</span></span>
-<span>  <span class="va">y</span><span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span><span class="op">-</span><span class="fl">5</span><span class="op">)</span><span class="op">/</span><span class="op">(</span><span class="fl">2</span><span class="op">+</span><span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">fitness</span><span class="op">=</span><span class="va">y</span></span>
-<span>  <span class="co"># Store the current solution</span></span>
-<span>  <span class="va">X</span> <span class="op">&lt;&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">x</span><span class="op">)</span></span>
-<span>  <span class="va">Y</span> <span class="op">&lt;&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">Y</span>,<span class="va">y</span><span class="op">)</span></span>
-<span>  <span class="co"># cat("\nSolution=",solution,"  x=",x,"  y=",y)</span></span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">fitness</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co"># normalizza (NB: questo dà range [-1, 15])</span></span>
+<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">x</span> <span class="op">*</span> <span class="fl">16</span> <span class="op">/</span> <span class="op">(</span><span class="fl">2</span><span class="op">^</span><span class="va">Genome</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
+<span>  </span>
+<span>  <span class="co"># fitness</span></span>
+<span>  <span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="fl">5</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Note that</p>
 <ul>
@@ -208,26 +207,25 @@ always set to 1/(popsize + 1)=0.04761905: this means that at each
 iteration, about 4.7% of the bit values are swapped.</p>
 <p>Finally, we apply the quantum genetic algorithm:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://barcaroli.github.io/QGA/">QGA</a></span><span class="op">)</span></span>
-<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
-<span><span class="va">solutionQGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span><span class="va">popsize</span>,</span>
-<span>                   <span class="va">generation_max</span>,</span>
-<span>                   <span class="va">nvalues_sol</span>,</span>
-<span>                   Genome<span class="op">=</span><span class="fl">16</span>,</span>
-<span>                   <span class="va">thetainit</span>,</span>
-<span>                   <span class="va">thetaend</span>,</span>
-<span>                   <span class="va">pop_mutation_rate_init</span>,</span>
-<span>                   <span class="va">pop_mutation_rate_end</span>,</span>
-<span>                   <span class="va">mutation_rate_init</span>,</span>
-<span>                   <span class="va">mutation_rate_end</span>,</span>
-<span>                   mutation_flag <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                   plotting <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                   verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                   progress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                   eval_fitness <span class="op">=</span> <span class="va">functionMax</span>,</span>
-<span>                   eval_func_inputs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span></span>
+<span><span class="va">solutionQGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QGA.html">QGA</a></span><span class="op">(</span>popsize               <span class="op">=</span> <span class="va">popsize</span>,</span>
+<span>                   generation_max        <span class="op">=</span> <span class="va">generation_max</span>,</span>
+<span>                   nvalues_sol           <span class="op">=</span> <span class="va">nvalues_sol</span>,</span>
+<span>                   Genome                <span class="op">=</span> <span class="va">Genome</span>,</span>
+<span>                   thetainit             <span class="op">=</span> <span class="va">thetainit</span>,</span>
+<span>                   thetaend              <span class="op">=</span> <span class="va">thetaend</span>,</span>
+<span>                   pop_mutation_rate_init<span class="op">=</span> <span class="va">pop_mutation_rate_init</span>,</span>
+<span>                   pop_mutation_rate_end <span class="op">=</span> <span class="va">pop_mutation_rate_end</span>,</span>
+<span>                   mutation_rate_init    <span class="op">=</span> <span class="va">mutation_rate_init</span>,</span>
+<span>                   mutation_rate_end     <span class="op">=</span> <span class="va">mutation_rate_end</span>,</span>
+<span>                   mutation_flag         <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                   plotting              <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                   verbose               <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                   progress              <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                   eval_fitness          <span class="op">=</span> <span class="va">functionMax</span>,</span>
+<span>                   eval_func_inputs      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Genome <span class="op">=</span> <span class="va">Genome</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: foreach</span></span>
+<span><span class="co">#&gt; Loading required package: iterators</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  *** Best fitness:  6.077961</span></span></code></pre></div>
 <p><img src="functionMax_files/figure-html/unnamed-chunk-5-1.png" width="768">
@@ -251,12 +249,6 @@ The found solution is</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"f("</span>, <span class="va">root1</span>, <span class="st">") ≈"</span>, <span class="va">f_root1</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; f( 11.16085 ) ≈ 6.078025</span></span></code></pre></div>
 <p>very close to the one found by the QGA.</p>
-<p>Finally, we can have a picture of the exploration of the interval
-0-15 by looking at the following plot:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">Y</span>,type<span class="op">=</span><span class="st">"h"</span>,col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html" class="external-link">title</a></span><span class="op">(</span><span class="st">"f(x)=abs((x-5)/(2+sin(x)))"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="functionMax_files/figure-html/unnamed-chunk-8-1.png" width="768"></p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
