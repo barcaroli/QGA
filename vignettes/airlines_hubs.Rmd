@@ -97,7 +97,7 @@ solutionQGA <- QGA(
                 thetainit = 3.1415926535 * 0.025,
                 thetaend = 3.1415926535 * 0.005,
                 pop_mutation_rate_init = 3/(popsize + 1),
-                pop_mutation_rate_end = 1/(popsize + 1),
+                pop_mutation_rate_end = 1/(popsize + 1),<<<<<<<<<<<
                 mutation_rate_init = 3/(Genome + 1),
                 mutation_rate_end = 1/(Genome + 1),
                 mutation_flag = TRUE,

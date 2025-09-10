@@ -74,23 +74,23 @@ First, we define the fitness function:
 
 ```{r}
 functionMax <- function(solution, eval_func_inputs) {
-  solution <- solution - 1
-  # translate from binary to decimal value
-  x=0
-  for (j in c(1:Genome)) {
-    x=x+solution[j]*2^(Genome-j)
+  solution <- solution - 1L
+  Genome   <- eval_func_inputs$Genome  # <-- passa Genome come input!
+  
+  # traduci il bitstring (0/1) in intero
+  x <- 0
+  for (j in seq_len(Genome)) {
+    x <- x + solution[j] * 2^(Genome - j)
   }
-  # Normalize the obtained x into the interval 0-15
-  x=x*16/(2^Genome-1)-1
-  # replaces the value of x in the function f(x)
-  y= abs((x-5)/(2+sin(x)))
-  fitness=y
-  # Store the current solution
-  X <<- c(X,x)
-  Y <<- c(Y,y)
-  # cat("\nSolution=",solution,"  x=",x,"  y=",y)
-  return(fitness)
+  
+  # normalizza (NB: questo dà range [-1, 15])
+  x <- x * 16 / (2^Genome - 1) - 1
+  
+  # fitness
+  y <- abs((x - 5) / (2 + sin(x)))
+  return(y)
 }
+
 ```
 
 Note that
@@ -124,26 +124,23 @@ The mutation rate (Pauli gate) is always set to 1/(popsize + 1)=0.04761905: this
 Finally, we apply the quantum genetic algorithm:
 
 ```{r}
-library(QGA)
-X <- NULL
-Y <- NULL
 set.seed(1234)
-solutionQGA <- QGA(popsize,
-                   generation_max,
-                   nvalues_sol,
-                   Genome=16,
-                   thetainit,
-                   thetaend,
-                   pop_mutation_rate_init,
-                   pop_mutation_rate_end,
-                   mutation_rate_init,
-                   mutation_rate_end,
-                   mutation_flag = TRUE,
-                   plotting = FALSE,
-                   verbose = FALSE,
-                   progress = FALSE,
-                   eval_fitness = functionMax,
-                   eval_func_inputs = list(X,Y))
+solutionQGA <- QGA(popsize               = popsize,
+                   generation_max        = generation_max,
+                   nvalues_sol           = nvalues_sol,
+                   Genome                = Genome,
+                   thetainit             = thetainit,
+                   thetaend              = thetaend,
+                   pop_mutation_rate_init= pop_mutation_rate_init,
+                   pop_mutation_rate_end = pop_mutation_rate_end,
+                   mutation_rate_init    = mutation_rate_init,
+                   mutation_rate_end     = mutation_rate_end,
+                   mutation_flag         = TRUE,
+                   plotting              = FALSE,
+                   verbose               = FALSE,
+                   progress              = FALSE,
+                   eval_fitness          = functionMax,
+                   eval_func_inputs      = list(Genome = Genome))
 ```
 The found solution is
 
@@ -167,10 +164,5 @@ cat("f(", root1, ") ≈", f_root1, "\n")
 ```
 very close to the one found by the QGA. 
 
-Finally, we can have a picture of the exploration of the interval 0-15 by looking at the following plot:
 
-```{r}
-plot(X,Y,type="h",col="red")
-title("f(x)=abs((x-5)/(2+sin(x)))")
-```
 
