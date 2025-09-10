@@ -189,7 +189,7 @@ QGA <- function(popsize = 20,
                        genomeLength,
                        nvalues_sol,
                        Genome)
-  a <- evaluate(chromosome,
+  a <-evaluate(chromosome,
                     best_chromosome,
                     popsize,
                     Genome,

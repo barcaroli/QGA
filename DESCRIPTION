@@ -9,11 +9,11 @@ Description: Function that implements the Quantum Genetic Algorithm, first propo
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyLoad: yes
-Depends: R (>= 3.5.0)
+Depends: R (>= 3.5.0), parallel
 Suggests: knitr
 NeedsCompilation: no
 Packaged:
 URL: https://barcaroli.github.io/QGA/, https://github.com/barcaroli/QGA/
 BugReports: https://github.com/barcaroli/QGA/issues 
 VignetteBuilder: knitr
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2.9000
