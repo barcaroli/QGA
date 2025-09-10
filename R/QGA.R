@@ -25,7 +25,7 @@ QGA <- function(popsize = 20,
   
   # ---- Parallel deps ----
   if (!requireNamespace("doParallel", quietly = TRUE)) install.packages("doParallel")
-  if (!requireNamespace("foreach", quietly = TRUE))    install.packages("foreach")
+  if (!requireNamespace("foreach",    quietly = TRUE)) install.packages("foreach")
   library(doParallel)
   library(foreach)
   
@@ -47,20 +47,16 @@ QGA <- function(popsize = 20,
   
   # ---- Helper: decode bitstring -> integer solution (1..nvalues_sol) ----
   decode_solution <- function(bits, geneLength, Genome) {
-    # bits: integer( genomeLength )
-    # returns: integer( Genome ), values in 1..(2^geneLength) truncated to nvalues_sol domain if needed
     out <- integer(Genome)
     idx <- 1L
     for (x in seq_len(Genome)) {
       acc <- 0L
-      # take the x-th block of length geneLength
       for (y in seq_len(geneLength)) {
         b <- bits[idx]
         if (b != 0L && b != 1L) b <- as.integer(b != 0)
         acc <- acc + b * 2L^(geneLength - y)
         idx <- idx + 1L
       }
-      # map to 1..nvalues_sol
       out[x] <- acc + 1L
     }
     out
@@ -72,6 +68,11 @@ QGA <- function(popsize = 20,
   doParallel::registerDoParallel(cl)
   on.exit({ try(parallel::stopCluster(cl), silent = TRUE) }, add = TRUE)
   
+  # Export una tantum del decoder ai worker (evita i warning)
+  parallel::clusterExport(cl, varlist = c("decode_solution"),
+                          envir = environment())
+  
+  # Fallback operator: seriale se un solo worker
   `%op%` <- if (foreach::getDoParWorkers() > 1) `%dopar%` else `%do%`
   
   # ---- Working vars ----
@@ -93,9 +94,9 @@ QGA <- function(popsize = 20,
   )
   
   # ---- Best tracking (disambiguated) ----
-  best_idx_by_gen <- integer(generation_max + 1L) # index of best individual per generation
-  best_solution   <- integer(genomeLength)        # best chromosome (bitstring) this generation
-  solution_best   <- integer(genomeLength)        # best chromosome (bitstring) global
+  best_idx_by_gen <- integer(generation_max + 1L) # index of best per generation
+  best_solution   <- integer(genomeLength)        # best chromosome (bitstring) of current gen
+  solution_best   <- integer(genomeLength)        # global best chromosome (bitstring)
   fitness_best    <- -Inf
   generation      <- 1L
   
@@ -106,13 +107,11 @@ QGA <- function(popsize = 20,
   chromosome  <- repair(popsize, chromosome, geneLength, genomeLength, nvalues_sol, Genome)
   
   # ---- Initial fitness (decode -> evaluate) ----
-  # esportiamo solo il decoder; eval_fitness+inputs restano chiusi nella closure
-  fitness_list <- foreach(i = 1:popsize, .combine = c,
-                          .export = c("decode_solution")) %op% {
-                            bits <- chromosome[i, ]
-                            sol  <- decode_solution(bits, geneLength, Genome)
-                            eval_fitness(sol, eval_func_inputs)
-                          }
+  fitness_list <- foreach(i = 1:popsize, .combine = c) %op% {
+    bits <- chromosome[i, ]
+    sol  <- decode_solution(bits, geneLength, Genome)
+    eval_fitness(sol, eval_func_inputs)
+  }
   fitness         <- unlist(fitness_list, use.names = FALSE)
   fitness_max     <- max(fitness)
   fitness_average <- mean(fitness)
@@ -152,7 +151,7 @@ QGA <- function(popsize = 20,
     theta <- thetainit - ((thetainit - thetaend) / generation_max) * generation
     if (theta < 0) theta <- 0
     
-    # rotation expects the VECTOR OF BEST INDICES (history) + current generation
+    # rotation expects best indices history + current generation
     q_alphabeta <- rotation(chromosome,
                             best_idx_by_gen,    # pass indices, not bitstrings
                             generation,
@@ -185,12 +184,11 @@ QGA <- function(popsize = 20,
     chromosome <- repair(popsize, chromosome, geneLength, genomeLength, nvalues_sol, Genome)
     
     # fitness (decode -> evaluate)
-    fitness_list <- foreach(i = 1:popsize, .combine = c,
-                            .export = c("decode_solution")) %op% {
-                              bits <- chromosome[i, ]
-                              sol  <- decode_solution(bits, geneLength, Genome)
-                              eval_fitness(sol, eval_func_inputs)
-                            }
+    fitness_list <- foreach(i = 1:popsize, .combine = c) %op% {
+      bits <- chromosome[i, ]
+      sol  <- decode_solution(bits, geneLength, Genome)
+      eval_fitness(sol, eval_func_inputs)
+    }
     fitness         <- unlist(fitness_list, use.names = FALSE)
     fitness_max     <- max(fitness)
     fitness_average <- mean(fitness)
