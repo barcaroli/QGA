@@ -16,4 +16,4 @@ Packaged:
 URL: https://barcaroli.github.io/QGA/, https://github.com/barcaroli/QGA/
 BugReports: https://github.com/barcaroli/QGA/issues 
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2.9000
+RoxygenNote: 7.3.3

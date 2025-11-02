@@ -1,3 +1,19 @@
+#' Repair Decoded Genes
+#'
+#' @description
+#' Ensures that each decoded gene value falls within 1..`nvalues_sol` by
+#' folding out-of-range values back into the valid domain and re-encoding
+#' the chromosome to bits.
+#'
+#' @param popsize Integer. Number of individuals.
+#' @param chromosome Integer matrix `[popsize, genomeLength]` with 0/1 bits.
+#' @param geneLength Integer. Number of bits per gene.
+#' @param genomeLength Integer. Total number of bits (`Genome * geneLength`).
+#' @param nvalues_sol Integer. Allowed value count per gene (1..`nvalues_sol`).
+#' @param Genome Integer. Number of genes.
+#'
+#' @return The repaired `chromosome` bit matrix.
+#' @keywords internal
 repair <- function(popsize,
                    chromosome,
                    geneLength,

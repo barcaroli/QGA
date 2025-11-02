@@ -2,6 +2,26 @@
 # ROTATION                   
 #--------------
 
+#' Apply Rotation Update
+#'
+#' @description
+#' Implements the Han–Kim lookup-table rule to rotate qubit amplitudes
+#' towards the bit values of high-fitness solutions, based on the current
+#' generation's best individual and the global best.
+#'
+#' @param chromosome Integer matrix `[popsize, genomeLength]` of 0/1 bits.
+#' @param best_chromosome Integer vector; index of best individual per generation.
+#' @param generation Integer. Current generation index (1-based).
+#' @param genomeLength Integer. Total number of bits per chromosome.
+#' @param solution_best Integer vector of length `genomeLength` representing the global best bitstring.
+#' @param q_alphabeta Numeric array `[genomeLength, 2, popsize]` with amplitudes.
+#' @param work_q_alphabeta Numeric workspace array like `q_alphabeta`.
+#' @param popsize Integer. Population size.
+#' @param fitness Numeric vector of length `popsize` with fitness values.
+#' @param theta Numeric (radians). Rotation step size.
+#'
+#' @return Updated `q_alphabeta` amplitude array.
+#' @keywords internal
 rotation <- function(chromosome,
                      best_chromosome,
                      generation,

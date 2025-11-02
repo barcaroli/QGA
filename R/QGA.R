@@ -1,9 +1,57 @@
 #' Quantum Genetic Algorithm
 #'
-#' @description Main function to execute a Quantum Genetic Algorithm
-#' @details Calls a user-provided fitness function on decoded solutions.
+#' @description
+#' Runs a Quantum Genetic Algorithm (QGA) to optimize a user-defined
+#' fitness function over discrete decision variables. Internally it
+#' initializes a quantum population, iterates measurement, rotation,
+#' and optional mutation, repairs invalid genes, evaluates fitness in
+#' parallel when possible, and tracks best/average fitness across generations.
+#'
+#' @details
+#' Solutions are encoded as bitstrings and decoded to integer values in
+#' the range 1..`nvalues_sol` for each of the `Genome` genes. The user must
+#' supply a fitness function `eval_fitness(solution_integers, eval_func_inputs)`
+#' that returns a numeric score to maximize.
+#'
+#' @param popsize Integer. Population size.
+#' @param generation_max Integer. Maximum number of generations to run.
+#' @param nvalues_sol Integer. Number of allowed discrete values per gene (1..nvalues_sol).
+#' @param Genome Integer. Number of genes (decision variables).
+#' @param thetainit Numeric (radians). Initial rotation step for the update rule.
+#' @param thetaend Numeric (radians). Final rotation step (linearly decayed to this value).
+#' @param pop_mutation_rate_init Numeric in [0,1]. Initial per-individual mutation probability (default `1/(popsize+1)` when `mutation_flag`).
+#' @param pop_mutation_rate_end Numeric in [0,1]. Final per-individual mutation probability (default `1/(popsize+1)` when `mutation_flag`).
+#' @param mutation_rate_init Numeric in [0,1]. Initial per-bit mutation probability (default `1/(Genome+1)` when `mutation_flag`).
+#' @param mutation_rate_end Numeric in [0,1]. Final per-bit mutation probability (default `1/(Genome+1)` when `mutation_flag`).
+#' @param mutation_flag Logical. Whether to apply the mutation operator.
+#' @param plotting Logical. If TRUE, plots fitness history over generations.
+#' @param verbose Logical. If TRUE, prints per-generation summary to console.
+#' @param progress Logical. If TRUE, shows a text progress bar.
+#' @param eval_fitness Function. User-provided function with signature
+#'   `function(solution_integers, eval_func_inputs)` returning a numeric fitness value.
+#' @param eval_func_inputs Any. Second argument passed through to `eval_fitness`.
+#' @param stop_limit Numeric. Early-stop threshold; stops when best fitness >= `stop_limit`.
+#' @param stop_iters Integer or NULL. If set, stops when there is no improvement
+#'   over `stop_iters` generations.
+#'
+#' @return
+#' A list with two elements:
+#' - `best_solution_integers`: Integer vector of length `Genome` with values in 1..`nvalues_sol`.
+#' - `fitness_history_df`: Data frame with columns `generation`, `fitness_average`, `fitness_best`.
+#'
+#' @examples
+#' # Minimal example (toy fitness: sum of gene values)
+#' set.seed(1)
+#' f <- function(sol, data) sum(sol)
+#' 
+#' # This call is illustrative; tune popsize/generation_max for real problems
+#' # out <- QGA(popsize = 10, generation_max = 5,
+#' #            nvalues_sol = 4, Genome = 3,
+#' #            eval_fitness = f, eval_func_inputs = NULL,
+#' #            plotting = FALSE, verbose = FALSE, progress = FALSE)
+#'
+#' @seealso `rotation()`, `mutation()`, `measure()`, `repair()`
 #' @export
-#' @return list(best_solution_integers, fitness_history_df)
 QGA <- function(popsize = 20,  
                 generation_max = 200,
                 nvalues_sol,

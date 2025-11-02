@@ -2,6 +2,22 @@
 # POPULATION INITIALIZATION                     
 #---------------------------
 
+#' Initialize Quantum Population
+#'
+#' @description
+#' Initializes the amplitudes for each qubit of every individual by
+#' applying a random rotation to the Hadamard-initialized |0⟩ state.
+#'
+#' @param popsize Integer. Number of individuals in the population.
+#' @param genomeLength Integer. Total number of bits per chromosome.
+#' @param q_alphabeta Numeric array `[genomeLength, 2, popsize]` to fill with amplitudes.
+#' @param rot Numeric 2x2 matrix used as rotation workspace.
+#' @param theta Numeric. Input angle (overwritten internally by random angles).
+#' @param h Numeric 2x2 Hadamard matrix.
+#' @param qubit_0 Numeric length-2 vector representing the |0⟩ state.
+#'
+#' @return The updated `q_alphabeta` array of shape `[genomeLength, 2, popsize]`.
+#' @keywords internal
 generate_pop <- function(popsize,
                          genomeLength,
                          q_alphabeta,

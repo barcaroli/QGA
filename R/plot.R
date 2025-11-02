@@ -2,6 +2,16 @@
 # PLOT                   
 #----------
 
+#' Plot Fitness History
+#'
+#' @description
+#' Produces a base R line plot of average and best fitness across
+#' generations with simple auto-scaling of y-limits.
+#'
+#' @param res Data frame with columns `generation`, `fitness_average`, `fitness_best`.
+#'
+#' @return Invisibly returns `NULL`. Draws a plot as a side effect.
+#' @keywords internal
 plot_Output <- function(res) {
   y1 = min(min(res$fitness_average),min(res$fitness_best))
   y2 = max(max(res$fitness_average),max(res$fitness_best))

@@ -26,117 +26,74 @@ QGA(
 )
 }
 \arguments{
-\item{popsize}{the number of generated solutions (population) to be evaluated at each iteration
-(default is 20)}
+\item{popsize}{Integer. Population size.}
 
-\item{generation_max}{the number of iterations to be performed
-(default is 200)}
+\item{generation_max}{Integer. Maximum number of generations to run.}
 
-\item{nvalues_sol}{the number of possible integer values contained in each element (gene) of the solution}
+\item{nvalues_sol}{Integer. Number of allowed discrete values per gene (1..nvalues_sol).}
 
-\item{Genome}{the length of the genome (or chromosome), representing a possible solution}
+\item{Genome}{Integer. Number of genes (decision variables).}
 
-\item{thetainit}{the angle (expressed in radiants) to be used when applying the rotation gate
-when starting the iterations 
-(default is pi * 0.05, where pi = 3.1415926535)}
+\item{thetainit}{Numeric (radians). Initial rotation step for the update rule.}
 
-\item{thetaend}{the angle (expressed in radiants) to be used when applying the rotation gate 
-at the end of the iterations
-(default is pi * 0.025, where pi = 3.1415926535)}
+\item{thetaend}{Numeric (radians). Final rotation step (linearly decayed to this value).}
 
-\item{pop_mutation_rate_init}{initial mutation rate to be used when applying the X-Pauli gate, applied 
-to each individual in the population (default is 1/(popsize+1))}
+\item{pop_mutation_rate_init}{Numeric in [0,1]. Initial per-individual mutation probability (default `1/(popsize+1)` when `mutation_flag`).}
 
-\item{pop_mutation_rate_end}{final mutation rate to be used when applying the X-Pauli gate, applied 
-to each individual in the population (default is 1/(popsize+1))}
+\item{pop_mutation_rate_end}{Numeric in [0,1]. Final per-individual mutation probability (default `1/(popsize+1)` when `mutation_flag`).}
 
-\item{mutation_rate_init}{initial mutation rate to be used when applying the X-Pauli gate, applied 
-to each element of the chromosome  (default is 1/(Genome+1)))}
+\item{mutation_rate_init}{Numeric in [0,1]. Initial per-bit mutation probability (default `1/(Genome+1)` when `mutation_flag`).}
 
-\item{mutation_rate_end}{final mutation rate to be used when applying the X-Pauli gate, applied 
-to each element of the chromosome (default is 1/(Genome+1))}
+\item{mutation_rate_end}{Numeric in [0,1]. Final per-bit mutation probability (default `1/(Genome+1)` when `mutation_flag`).}
 
-\item{mutation_flag}{flag indicating if the mutation gate is to be applied or not (default is TRUE)}
+\item{mutation_flag}{Logical. Whether to apply the mutation operator.}
 
-\item{plotting}{flag indicating plotting during iterations}
+\item{plotting}{Logical. If TRUE, plots fitness history over generations.}
 
-\item{verbose}{flag indicating printing fitness during iterations}
+\item{verbose}{Logical. If TRUE, prints per-generation summary to console.}
 
-\item{progress}{flag indicating progress bar during iterations}
+\item{progress}{Logical. If TRUE, shows a text progress bar.}
 
-\item{eval_fitness}{name of the function that will be used to evaluate the fitness of each solution}
+\item{eval_fitness}{Function. User-provided function with signature
+`function(solution_integers, eval_func_inputs)` returning a numeric fitness value.}
 
-\item{eval_func_inputs}{specific inputs required by the eval_fitness function}
+\item{eval_func_inputs}{Any. Second argument passed through to `eval_fitness`.}
 
-\item{stop_limit}{value to stop the iterations if the fitness is higher than a given value}
+\item{stop_limit}{Numeric. Early-stop threshold; stops when best fitness >= `stop_limit`.}
 
-\item{stop_iters}{number of iterations without improvement of fitness before stopping}
+\item{stop_iters}{Integer or NULL. If set, stops when there is no improvement
+over `stop_iters` generations.}
 }
 \value{
-A numeric vector (positive integers) giving the best solution obtained by the QGA
+A list with two elements:
+- `best_solution_integers`: Integer vector of length `Genome` with values in 1..`nvalues_sol`.
+- `fitness_history_df`: Data frame with columns `generation`, `fitness_average`, `fitness_best`.
 }
 \description{
-Main function to execute a Quantum Genetic Algorithm
+Runs a Quantum Genetic Algorithm (QGA) to optimize a user-defined
+fitness function over discrete decision variables. Internally it
+initializes a quantum population, iterates measurement, rotation,
+and optional mutation, repairs invalid genes, evaluates fitness in
+parallel when possible, and tracks best/average fitness across generations.
 }
 \details{
-This function is the 'engine', which performs the quantum genetic algorithm calling
-the function for the evaluation of the fitness that is specific for the particulare
-problem to be optmized.
+Solutions are encoded as bitstrings and decoded to integer values in
+the range 1..`nvalues_sol` for each of the `Genome` genes. The user must
+supply a fitness function `eval_fitness(solution_integers, eval_func_inputs)`
+that returns a numeric score to maximize.
 }
 \examples{
-#----------------------------------------
-# Fitness evaluation for Knapsack Problem
-#----------------------------------------
-KnapsackProblem <- function(solution,
-                            eval_func_inputs) {
-  solution <- solution - 1
-  items <- eval_func_inputs[[1]]
-  maxweight <- eval_func_inputs[[2]]
-  tot_items <- sum(solution)
-  # Penalization
-  if (sum(items$weight[solution]) > maxweight) {
-    tot_items <- tot_items - (sum(items$weight[solution]) - maxweight)  
-  }
-  return(tot_items)
-}
-#----------------------------------------
-# Prepare data for fitness evaluation
-items <- as.data.frame(list(Item = paste0("item",c(1:300)),
-                            weight = rep(NA,300)))
-set.seed(1234)
-items$weight <- rnorm(300,mean=50,sd=20)
-hist(items$weight)
-sum(items$weight)
-maxweight = sum(items$weight) / 2
-maxweight
-#----------------------
-# Perform optimization
-popsize = 20
-Genome = nrow(items)
-solutionQGA <- QGA(popsize = 20,
-                generation_max = 500,
-                nvalues_sol = 2,
-                Genome = nrow(items),
-                thetainit = 3.1415926535 * 0.05,
-                thetaend = 3.1415926535 * 0.025,
-                pop_mutation_rate_init = 1/(popsize + 1),
-                pop_mutation_rate_end = 1/(popsize + 1),
-                mutation_rate_init = 1,
-                mutation_rate_end = 1,
-                mutation_flag = TRUE,
-                plotting = FALSE,
-                verbose = FALSE,
-                progress = FALSE,
-                eval_fitness = KnapsackProblem,
-                eval_func_inputs = list(items,
-                                        maxweight),
-                stop_iters = NULL)
-#----------------------
-# Analyze results
-solution <- solutionQGA[[1]]
-solution <- solution - 1
-sum(solution)
-sum(items$weight[solution])
-maxweight
+# Minimal example (toy fitness: sum of gene values)
+set.seed(1)
+f <- function(sol, data) sum(sol)
 
+# This call is illustrative; tune popsize/generation_max for real problems
+# out <- QGA(popsize = 10, generation_max = 5,
+#            nvalues_sol = 4, Genome = 3,
+#            eval_fitness = f, eval_func_inputs = NULL,
+#            plotting = FALSE, verbose = FALSE, progress = FALSE)
+
+}
+\seealso{
+`rotation()`, `mutation()`, `measure()`, `repair()`
 }
