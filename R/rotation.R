@@ -114,7 +114,7 @@ rotation <- function(chromosome,
             q_alphabeta[j, 2, i] <- work_q_alphabeta[j, 2, i]
           }
           # x = 1 b = 0
-          if (chromosome[i, j] == 0 & chromosome[best_chromosome[generation], j] == 1) {
+          if (chromosome[i, j] == 1 & chromosome[best_chromosome[generation], j] == 0) {
             if (q_alphabeta[j, 1, i]*q_alphabeta[j, 2, i] >= 0) {
               s = 1
             }

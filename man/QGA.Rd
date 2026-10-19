@@ -22,7 +22,12 @@ QGA(
   eval_fitness,
   eval_func_inputs,
   stop_limit = NULL,
-  stop_iters = NULL
+  stop_iters = NULL,
+  interference_flag = FALSE,
+  interference_rate = 0.1,
+  interference_type = c("diagonal", "amplitude"),
+  interference_lambda = 0.5,
+  parallel = FALSE
 )
 }
 \arguments{
@@ -63,6 +68,27 @@ QGA(
 
 \item{stop_iters}{Integer or NULL. If set, stops when there is no improvement
 over `stop_iters` generations.}
+
+\item{interference_flag}{Logical. Whether to apply the interference operator
+after mutation (see `interference_type`). Default FALSE.}
+
+\item{interference_rate}{Numeric in [0,1]. Probability of applying the
+interference operator to the population at each iteration. Default 0.1.}
+
+\item{interference_type}{Character. Type of interference operator:
+`"diagonal"` (default) copies the amplitudes of each qubit from another
+individual following a diagonal scheme (Narayanan & Moore, 1996), without
+using fitness; `"amplitude"` adds to each qubit the fitness-weighted sum
+of the amplitudes of the whole population, so that amplitudes of
+individuals above the average fitness interfere constructively and those
+below the average destructively. See `interference()`.}
+
+\item{interference_lambda}{Numeric >= 0. Strength of the amplitude
+interference (used only with `interference_type = "amplitude"`). Default 0.5.}
+
+\item{parallel}{Logical. If TRUE, fitness evaluation is distributed over
+`detectCores() - 1` workers via `foreach`/`doParallel`. Default FALSE
+(sequential evaluation, no cluster is created).}
 }
 \value{
 A list with two elements:
@@ -73,8 +99,9 @@ A list with two elements:
 Runs a Quantum Genetic Algorithm (QGA) to optimize a user-defined
 fitness function over discrete decision variables. Internally it
 initializes a quantum population, iterates measurement, rotation,
-and optional mutation, repairs invalid genes, evaluates fitness in
-parallel when possible, and tracks best/average fitness across generations.
+and optional mutation and interference, repairs invalid genes, evaluates
+fitness (in parallel if `parallel = TRUE`), and tracks best/average fitness
+across generations.
 }
 \details{
 Solutions are encoded as bitstrings and decoded to integer values in

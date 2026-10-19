@@ -4,8 +4,9 @@
 #' Runs a Quantum Genetic Algorithm (QGA) to optimize a user-defined
 #' fitness function over discrete decision variables. Internally it
 #' initializes a quantum population, iterates measurement, rotation,
-#' and optional mutation, repairs invalid genes, evaluates fitness in
-#' parallel when possible, and tracks best/average fitness across generations.
+#' and optional mutation and interference, repairs invalid genes, evaluates
+#' fitness (in parallel if `parallel = TRUE`), and tracks best/average fitness
+#' across generations.
 #'
 #' @details
 #' Solutions are encoded as bitstrings and decoded to integer values in
@@ -33,6 +34,22 @@
 #' @param stop_limit Numeric. Early-stop threshold; stops when best fitness >= `stop_limit`.
 #' @param stop_iters Integer or NULL. If set, stops when there is no improvement
 #'   over `stop_iters` generations.
+#' @param interference_flag Logical. Whether to apply the interference operator
+#'   after mutation (see `interference_type`). Default FALSE.
+#' @param interference_rate Numeric in [0,1]. Probability of applying the
+#'   interference operator to the population at each iteration. Default 0.1.
+#' @param interference_type Character. Type of interference operator:
+#'   `"diagonal"` (default) copies the amplitudes of each qubit from another
+#'   individual following a diagonal scheme (Narayanan & Moore, 1996), without
+#'   using fitness; `"amplitude"` adds to each qubit the fitness-weighted sum
+#'   of the amplitudes of the whole population, so that amplitudes of
+#'   individuals above the average fitness interfere constructively and those
+#'   below the average destructively. See `interference()`.
+#' @param interference_lambda Numeric >= 0. Strength of the amplitude
+#'   interference (used only with `interference_type = "amplitude"`). Default 0.5.
+#' @param parallel Logical. If TRUE, fitness evaluation is distributed over
+#'   `detectCores() - 1` workers via `foreach`/`doParallel`. Default FALSE
+#'   (sequential evaluation, no cluster is created).
 #'
 #' @return
 #' A list with two elements:
@@ -69,13 +86,20 @@ QGA <- function(popsize = 20,
                 eval_fitness,
                 eval_func_inputs,
                 stop_limit = NULL,
-                stop_iters = NULL) {
+                stop_iters = NULL,
+                interference_flag = FALSE,
+                interference_rate = 0.1,
+                interference_type = c("diagonal", "amplitude"),
+                interference_lambda = 0.5,
+                parallel = FALSE) {
   
   # ---- Parallel deps ----
-  if (!requireNamespace("doParallel", quietly = TRUE)) install.packages("doParallel")
-  if (!requireNamespace("foreach",    quietly = TRUE)) install.packages("foreach")
-  library(doParallel)
-  library(foreach)
+  if (parallel) {
+    if (!requireNamespace("doParallel", quietly = TRUE)) install.packages("doParallel")
+    if (!requireNamespace("foreach",    quietly = TRUE)) install.packages("foreach")
+    library(doParallel)
+    library(foreach)
+  }
   
   # ---- Checks & defaults ----
   if (is.null(nvalues_sol)) stop("nvalues_sol parameter value missing!")
@@ -85,6 +109,7 @@ QGA <- function(popsize = 20,
   if (is.null(mutation_rate_init)     && mutation_flag) mutation_rate_init     <- 1/(Genome+1)
   if (is.null(mutation_rate_end)      && mutation_flag) mutation_rate_end      <- 1/(Genome+1)
   if (is.null(stop_limit)) stop_limit <- Inf
+  interference_type <- match.arg(interference_type)
   
   # ---- Genome encoding ----
   n <- 0L
@@ -110,18 +135,39 @@ QGA <- function(popsize = 20,
     out
   }
   
-  # ---- Parallel backend ----
-  numCores <- max(1L, parallel::detectCores() - 1L)
-  cl <- parallel::makeCluster(numCores)
-  doParallel::registerDoParallel(cl)
-  on.exit({ try(parallel::stopCluster(cl), silent = TRUE) }, add = TRUE)
+  # ---- Parallel backend (only if parallel = TRUE) ----
+  if (parallel) {
+    numCores <- max(1L, parallel::detectCores() - 1L)
+    cl <- parallel::makeCluster(numCores)
+    doParallel::registerDoParallel(cl)
+    on.exit({ try(parallel::stopCluster(cl), silent = TRUE) }, add = TRUE)
+    
+    # Export una tantum del decoder ai worker (evita i warning)
+    parallel::clusterExport(cl, varlist = c("decode_solution"),
+                            envir = environment())
+    
+    # Fallback operator: seriale se un solo worker
+    `%op%` <- if (foreach::getDoParWorkers() > 1) `%dopar%` else `%do%`
+  }
   
-  # Export una tantum del decoder ai worker (evita i warning)
-  parallel::clusterExport(cl, varlist = c("decode_solution"),
-                          envir = environment())
-  
-  # Fallback operator: seriale se un solo worker
-  `%op%` <- if (foreach::getDoParWorkers() > 1) `%dopar%` else `%do%`
+  # ---- Helper: evaluate fitness of the whole population ----
+  eval_population <- function(chromosome) {
+    if (parallel) {
+      fitness_list <- foreach::foreach(i = 1:popsize, .combine = c,
+                                       .export = c("decode_solution", "geneLength", "Genome",
+                                                   "eval_fitness", "eval_func_inputs")) %op% {
+        bits <- chromosome[i, ]
+        sol  <- decode_solution(bits, geneLength, Genome)
+        eval_fitness(sol, eval_func_inputs)
+      }
+    } else {
+      fitness_list <- lapply(seq_len(popsize), function(i) {
+        sol <- decode_solution(chromosome[i, ], geneLength, Genome)
+        eval_fitness(sol, eval_func_inputs)
+      })
+    }
+    unlist(fitness_list, use.names = FALSE)
+  }
   
   # ---- Working vars ----
   q_alphabeta      <- array(0.0, c(genomeLength, 2L, popsize))
@@ -155,12 +201,7 @@ QGA <- function(popsize = 20,
   chromosome  <- repair(popsize, chromosome, geneLength, genomeLength, nvalues_sol, Genome)
   
   # ---- Initial fitness (decode -> evaluate) ----
-  fitness_list <- foreach(i = 1:popsize, .combine = c) %op% {
-    bits <- chromosome[i, ]
-    sol  <- decode_solution(bits, geneLength, Genome)
-    eval_fitness(sol, eval_func_inputs)
-  }
-  fitness         <- unlist(fitness_list, use.names = FALSE)
+  fitness         <- eval_population(chromosome)
   fitness_max     <- max(fitness)
   fitness_average <- mean(fitness)
   
@@ -228,16 +269,23 @@ QGA <- function(popsize = 20,
                               genomeLength)
     }
     
+    if (interference_flag) {
+      q_alphabeta <- interference(interference_rate,
+                                  popsize,
+                                  chromosome,
+                                  solution_best,
+                                  q_alphabeta,
+                                  genomeLength,
+                                  interference_type,
+                                  fitness,
+                                  interference_lambda)
+    }
+    
     chromosome <- measure(popsize, genomeLength, q_alphabeta, chromosome)
     chromosome <- repair(popsize, chromosome, geneLength, genomeLength, nvalues_sol, Genome)
     
     # fitness (decode -> evaluate)
-    fitness_list <- foreach(i = 1:popsize, .combine = c) %op% {
-      bits <- chromosome[i, ]
-      sol  <- decode_solution(bits, geneLength, Genome)
-      eval_fitness(sol, eval_func_inputs)
-    }
-    fitness         <- unlist(fitness_list, use.names = FALSE)
+    fitness         <- eval_population(chromosome)
     fitness_max     <- max(fitness)
     fitness_average <- mean(fitness)
     
