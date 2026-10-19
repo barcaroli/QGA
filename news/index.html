@@ -44,6 +44,9 @@
       <a href="../articles/functionMax.html">Maximum of a function</a>
     </li>
     <li>
+      <a href="../articles/local_optima.html">Avoiding local optima</a>
+    </li>
+    <li>
       <a href="../articles/TSP.html">Traveller Salesman</a>
     </li>
   </ul></li>
@@ -74,6 +77,8 @@
 <ul><li><p>Introduced parallelization (optional, parameter <code>parallel</code>, default FALSE)</p></li>
 <li><p>Added the quantum interference crossover operator (parameters <code>interference_flag</code>, default FALSE, and <code>interference_rate</code>, default 0.1)</p></li>
 <li><p>Added <code>interference_type = "amplitude"</code> (with strength <code>interference_lambda</code>): fitness-weighted interference that sums the qubit amplitudes of the population, constructively for individuals above the average fitness and destructively for those below</p></li>
+<li><p>Added the vignette “Avoiding local optima”, illustrating the parameters that counteract premature convergence and how to use them</p></li>
+<li><p>Added three options against premature convergence (all off by default): the H-epsilon gate (<code>epsilon</code>), which keeps the probability of each bit value in [epsilon, 1 - epsilon]; a partial restart towards equal probabilities after <code>restart_iters</code> generations without improvement (<code>restart_strength</code>); personal attractors with local and global migration (<code>attractor_type = "personal"</code>, <code>migration_group_size</code>, <code>migration_local_period</code>, <code>migration_global_period</code>)</p></li>
 <li><p>Fixed a bug in the rotation gate: when an individual was at least as good as the best one, the case x = 1, b = 0 was never handled and the case x = 0, b = 1 was rotated twice in opposite directions</p></li>
 <li>
 <p>Added two parameters to the QGA function:</p>

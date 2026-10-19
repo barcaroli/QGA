@@ -49,6 +49,9 @@ across generations."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/a
       <a href="../articles/functionMax.html">Maximum of a function</a>
     </li>
     <li>
+      <a href="../articles/local_optima.html">Avoiding local optima</a>
+    </li>
+    <li>
       <a href="../articles/TSP.html">Traveller Salesman</a>
     </li>
   </ul></li>
@@ -108,6 +111,13 @@ across generations.</p>
 <span>  interference_rate <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  interference_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"diagonal"</span>, <span class="st">"amplitude"</span><span class="op">)</span>,</span>
 <span>  interference_lambda <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  epsilon <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  restart_iters <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  restart_strength <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  attractor_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"generation"</span>, <span class="st">"personal"</span><span class="op">)</span>,</span>
+<span>  migration_group_size <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  migration_local_period <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  migration_global_period <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  parallel <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -213,6 +223,46 @@ below the average destructively. See `interference()`.</p></dd>
 <dt id="arg-interference-lambda">interference_lambda<a class="anchor" aria-label="anchor" href="#arg-interference-lambda"></a></dt>
 <dd><p>Numeric &gt;= 0. Strength of the amplitude
 interference (used only with `interference_type = "amplitude"`). Default 0.5.</p></dd>
+
+
+<dt id="arg-epsilon">epsilon<a class="anchor" aria-label="anchor" href="#arg-epsilon"></a></dt>
+<dd><p>Numeric in \[0, 0.5). H-epsilon gate (Han &amp; Kim, 2004): the
+probability of each bit value is kept in \[`epsilon`, 1 - `epsilon`\], so
+that qubits never collapse to a deterministic state. Default 0 (no gate).</p></dd>
+
+
+<dt id="arg-restart-iters">restart_iters<a class="anchor" aria-label="anchor" href="#arg-restart-iters"></a></dt>
+<dd><p>Integer or NULL. If set, when the best fitness does not
+improve for `restart_iters` generations, the population (except the best
+individual) is partially brought back towards equal probabilities.
+Should be smaller than `stop_iters`. Default NULL (no restart).</p></dd>
+
+
+<dt id="arg-restart-strength">restart_strength<a class="anchor" aria-label="anchor" href="#arg-restart-strength"></a></dt>
+<dd><p>Numeric in \[0, 1\]. Fraction of the way each qubit
+angle is moved towards pi/4 at a restart (1 = full reset). Default 0.5.</p></dd>
+
+
+<dt id="arg-attractor-type">attractor_type<a class="anchor" aria-label="anchor" href="#arg-attractor-type"></a></dt>
+<dd><p>Character. What each individual is rotated towards:
+`"generation"` (default), the best individual of the current generation;
+`"personal"`, its own attractor, i.e. the best solution it has found so
+far, shared through local and global migration (Han &amp; Kim, 2002).</p></dd>
+
+
+<dt id="arg-migration-group-size">migration_group_size<a class="anchor" aria-label="anchor" href="#arg-migration-group-size"></a></dt>
+<dd><p>Integer. Size of the groups of consecutive
+individuals for local migration (`attractor_type = "personal"`). Default 2.</p></dd>
+
+
+<dt id="arg-migration-local-period">migration_local_period<a class="anchor" aria-label="anchor" href="#arg-migration-local-period"></a></dt>
+<dd><p>Integer or NULL. Every this many generations,
+the best attractor of each group is copied to the group. Default 1.</p></dd>
+
+
+<dt id="arg-migration-global-period">migration_global_period<a class="anchor" aria-label="anchor" href="#arg-migration-global-period"></a></dt>
+<dd><p>Integer or NULL. Every this many generations,
+the best attractor is copied to all individuals. Default 50.</p></dd>
 
 
 <dt id="arg-parallel">parallel<a class="anchor" aria-label="anchor" href="#arg-parallel"></a></dt>
