@@ -6,8 +6,8 @@
 \usage{
 rotation(
   chromosome,
-  best_chromosome,
-  generation,
+  attractor,
+  attractor_fitness,
   genomeLength,
   solution_best,
   q_alphabeta,
@@ -20,9 +20,9 @@ rotation(
 \arguments{
 \item{chromosome}{Integer matrix `[popsize, genomeLength]` of 0/1 bits.}
 
-\item{best_chromosome}{Integer vector; index of best individual per generation.}
+\item{attractor}{Integer matrix `[popsize, genomeLength]`; row i is the bitstring individual i is rotated towards.}
 
-\item{generation}{Integer. Current generation index (1-based).}
+\item{attractor_fitness}{Numeric vector of length `popsize` with the fitness of the attractors.}
 
 \item{genomeLength}{Integer. Total number of bits per chromosome.}
 
@@ -43,7 +43,9 @@ Updated `q_alphabeta` amplitude array.
 }
 \description{
 Implements the Han–Kim lookup-table rule to rotate qubit amplitudes
-towards the bit values of high-fitness solutions, based on the current
-generation's best individual and the global best.
+towards the bit values of high-fitness solutions: each individual is
+rotated towards its attractor (the best individual of the current
+generation, or its personal attractor). Individuals equal to the global
+best are left unchanged.
 }
 \keyword{internal}

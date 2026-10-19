@@ -6,12 +6,14 @@
 #'
 #' @description
 #' Implements the Han–Kim lookup-table rule to rotate qubit amplitudes
-#' towards the bit values of high-fitness solutions, based on the current
-#' generation's best individual and the global best.
+#' towards the bit values of high-fitness solutions: each individual is
+#' rotated towards its attractor (the best individual of the current
+#' generation, or its personal attractor). Individuals equal to the global
+#' best are left unchanged.
 #'
 #' @param chromosome Integer matrix `[popsize, genomeLength]` of 0/1 bits.
-#' @param best_chromosome Integer vector; index of best individual per generation.
-#' @param generation Integer. Current generation index (1-based).
+#' @param attractor Integer matrix `[popsize, genomeLength]`; row i is the bitstring individual i is rotated towards.
+#' @param attractor_fitness Numeric vector of length `popsize` with the fitness of the attractors.
 #' @param genomeLength Integer. Total number of bits per chromosome.
 #' @param solution_best Integer vector of length `genomeLength` representing the global best bitstring.
 #' @param q_alphabeta Numeric array `[genomeLength, 2, popsize]` with amplitudes.
@@ -23,8 +25,8 @@
 #' @return Updated `q_alphabeta` amplitude array.
 #' @keywords internal
 rotation <- function(chromosome,
-                     best_chromosome,
-                     generation,
+                     attractor,
+                     attractor_fitness,
                      genomeLength,
                      solution_best,
                      q_alphabeta,
@@ -40,9 +42,9 @@ rotation <- function(chromosome,
         # Han-Kim lookup table 
         #----------------------
         # f(x) > f(b) FALSE
-        if (fitness[i] < fitness[best_chromosome[generation]]) {
+        if (fitness[i] < attractor_fitness[i]) {
           # x = 0 b = 1
-          if (chromosome[i, j] == 0 & chromosome[best_chromosome[generation], j] == 1) {
+          if (chromosome[i, j] == 0 & attractor[i, j] == 1) {
             if (q_alphabeta[j, 1, i]*q_alphabeta[j, 2, i] >= 0) {
               s = 1
             }
@@ -65,7 +67,7 @@ rotation <- function(chromosome,
             q_alphabeta[j, 2, i] <- work_q_alphabeta[j, 2, i]
           }
           # x = 1 b = 0
-          if (chromosome[i, j] == 1 & chromosome[best_chromosome[generation], j] == 0) {
+          if (chromosome[i, j] == 1 & attractor[i, j] == 0) {
             if (q_alphabeta[j, 1, i]*q_alphabeta[j, 2, i] >= 0) {
               s = -1
             }
@@ -89,9 +91,9 @@ rotation <- function(chromosome,
           }
         }
         # f(x) > f(b) TRUE
-        if (fitness[i] >= fitness[best_chromosome[generation]]) {
+        if (fitness[i] >= attractor_fitness[i]) {
           # x = 0 b = 1
-          if (chromosome[i, j] == 0 & chromosome[best_chromosome[generation], j] == 1) {
+          if (chromosome[i, j] == 0 & attractor[i, j] == 1) {
             if (q_alphabeta[j, 1, i]*q_alphabeta[j, 2, i] >= 0) {
               s = -1
             }
@@ -114,7 +116,7 @@ rotation <- function(chromosome,
             q_alphabeta[j, 2, i] <- work_q_alphabeta[j, 2, i]
           }
           # x = 1 b = 0
-          if (chromosome[i, j] == 1 & chromosome[best_chromosome[generation], j] == 0) {
+          if (chromosome[i, j] == 1 & attractor[i, j] == 0) {
             if (q_alphabeta[j, 1, i]*q_alphabeta[j, 2, i] >= 0) {
               s = 1
             }
@@ -137,7 +139,7 @@ rotation <- function(chromosome,
             q_alphabeta[j, 2, i] <- work_q_alphabeta[j, 2, i]
           }
           # x = 1 b = 1
-          if (chromosome[i, j] == 1 & chromosome[best_chromosome[generation], j] == 1) {
+          if (chromosome[i, j] == 1 & attractor[i, j] == 1) {
             if (q_alphabeta[j, 1, i]*q_alphabeta[j, 2, i] >= 0) {
               s = 1
             }

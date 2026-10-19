@@ -41,7 +41,6 @@ First of all, we use the analytic approach: first, we obtain the first derivativ
 
 ```{r message=FALSE, warning=FALSE}
 # Analytic solution
-if (!require(numDeriv)) install.packages("numDeriv", dependencies=TRUE)
 library(numDeriv)
 g <- function(x) {
   (x - 5) / (2 + sin(x))
@@ -51,10 +50,6 @@ f_prime <- function(x) {
   g_deriv <- grad(g, x)
   sgn * g_deriv
 }
-if (!requireNamespace("rootSolve", quietly = TRUE)) {
-  install.packages("rootSolve")
-}
-library(rootSolve)
 root1 <- uniroot(f_prime, c(5.1, 12))$root
 root2 <- uniroot(f_prime, c(12.1, 15))$root
 # cat("Root 1: x ≈", root1, "\n")

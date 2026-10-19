@@ -47,6 +47,25 @@
 #'   below the average destructively. See `interference()`.
 #' @param interference_lambda Numeric >= 0. Strength of the amplitude
 #'   interference (used only with `interference_type = "amplitude"`). Default 0.5.
+#' @param epsilon Numeric in \[0, 0.5). H-epsilon gate (Han & Kim, 2004): the
+#'   probability of each bit value is kept in \[`epsilon`, 1 - `epsilon`\], so
+#'   that qubits never collapse to a deterministic state. Default 0 (no gate).
+#' @param restart_iters Integer or NULL. If set, when the best fitness does not
+#'   improve for `restart_iters` generations, the population (except the best
+#'   individual) is partially brought back towards equal probabilities.
+#'   Should be smaller than `stop_iters`. Default NULL (no restart).
+#' @param restart_strength Numeric in \[0, 1\]. Fraction of the way each qubit
+#'   angle is moved towards pi/4 at a restart (1 = full reset). Default 0.5.
+#' @param attractor_type Character. What each individual is rotated towards:
+#'   `"generation"` (default), the best individual of the current generation;
+#'   `"personal"`, its own attractor, i.e. the best solution it has found so
+#'   far, shared through local and global migration (Han & Kim, 2002).
+#' @param migration_group_size Integer. Size of the groups of consecutive
+#'   individuals for local migration (`attractor_type = "personal"`). Default 2.
+#' @param migration_local_period Integer or NULL. Every this many generations,
+#'   the best attractor of each group is copied to the group. Default 1.
+#' @param migration_global_period Integer or NULL. Every this many generations,
+#'   the best attractor is copied to all individuals. Default 50.
 #' @param parallel Logical. If TRUE, fitness evaluation is distributed over
 #'   `detectCores() - 1` workers via `foreach`/`doParallel`. Default FALSE
 #'   (sequential evaluation, no cluster is created).
@@ -91,6 +110,13 @@ QGA <- function(popsize = 20,
                 interference_rate = 0.1,
                 interference_type = c("diagonal", "amplitude"),
                 interference_lambda = 0.5,
+                epsilon = 0,
+                restart_iters = NULL,
+                restart_strength = 0.5,
+                attractor_type = c("generation", "personal"),
+                migration_group_size = 2,
+                migration_local_period = 1,
+                migration_global_period = 50,
                 parallel = FALSE) {
   
   # ---- Parallel deps ----
@@ -110,6 +136,8 @@ QGA <- function(popsize = 20,
   if (is.null(mutation_rate_end)      && mutation_flag) mutation_rate_end      <- 1/(Genome+1)
   if (is.null(stop_limit)) stop_limit <- Inf
   interference_type <- match.arg(interference_type)
+  attractor_type    <- match.arg(attractor_type)
+  if (epsilon < 0 || epsilon >= 0.5) stop("epsilon must be in [0, 0.5)")
   
   # ---- Genome encoding ----
   n <- 0L
@@ -214,6 +242,14 @@ QGA <- function(popsize = 20,
     fitness_best  <- fitness_max
     solution_best <- solution_max
   }
+  last_improvement <- generation
+  n_restarts       <- 0L
+  
+  # personal attractors: initially each individual's own solution
+  if (attractor_type == "personal") {
+    attractor         <- chromosome
+    attractor_fitness <- fitness
+  }
   
   res$fitness_average[generation] <- fitness_average
   res$fitness_best[generation]    <- fitness_best
@@ -240,10 +276,16 @@ QGA <- function(popsize = 20,
     theta <- thetainit - ((thetainit - thetaend) / generation_max) * generation
     if (theta < 0) theta <- 0
     
-    # rotation expects best indices history + current generation
+    # attractors: best individual of the current generation for everybody
+    if (attractor_type == "generation") {
+      b <- best_idx_by_gen[generation]
+      attractor         <- matrix(chromosome[b, ], popsize, genomeLength, byrow = TRUE)
+      attractor_fitness <- rep(fitness[b], popsize)
+    }
+    
     q_alphabeta <- rotation(chromosome,
-                            best_idx_by_gen,    # pass indices, not bitstrings
-                            generation,
+                            attractor,
+                            attractor_fitness,
                             genomeLength,
                             solution_best,      # best bitstring so far
                             q_alphabeta,
@@ -281,6 +323,8 @@ QGA <- function(popsize = 20,
                                   interference_lambda)
     }
     
+    if (epsilon > 0) q_alphabeta <- h_epsilon(q_alphabeta, epsilon)
+    
     chromosome <- measure(popsize, genomeLength, q_alphabeta, chromosome)
     chromosome <- repair(popsize, chromosome, geneLength, genomeLength, nvalues_sol, Genome)
     
@@ -295,8 +339,30 @@ QGA <- function(popsize = 20,
     solution_max                <- best_solution
     
     if (fitness_max > fitness_best) {
-      fitness_best  <- fitness_max
-      solution_best <- solution_max
+      fitness_best     <- fitness_max
+      solution_best    <- solution_max
+      last_improvement <- generation
+    }
+    
+    # personal attractors: update with improved solutions, then migrate
+    if (attractor_type == "personal") {
+      improved <- fitness > attractor_fitness
+      attractor[improved, ]       <- chromosome[improved, ]
+      attractor_fitness[improved] <- fitness[improved]
+      mig <- migration(attractor, attractor_fitness, generation,
+                       migration_group_size, migration_local_period,
+                       migration_global_period)
+      attractor         <- mig$attractor
+      attractor_fitness <- mig$attractor_fitness
+    }
+    
+    # partial restart after restart_iters generations without improvement
+    if (!is.null(restart_iters) && generation - last_improvement >= restart_iters) {
+      q_alphabeta      <- partial_restart(q_alphabeta, restart_strength,
+                                          chromosome, solution_best)
+      last_improvement <- generation
+      n_restarts       <- n_restarts + 1L
+      if (verbose) cat("\n *** Partial restart at generation", generation)
     }
     
     res$fitness_average[generation] <- fitness_average

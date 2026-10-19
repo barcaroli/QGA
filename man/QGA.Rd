@@ -27,6 +27,13 @@ QGA(
   interference_rate = 0.1,
   interference_type = c("diagonal", "amplitude"),
   interference_lambda = 0.5,
+  epsilon = 0,
+  restart_iters = NULL,
+  restart_strength = 0.5,
+  attractor_type = c("generation", "personal"),
+  migration_group_size = 2,
+  migration_local_period = 1,
+  migration_global_period = 50,
   parallel = FALSE
 )
 }
@@ -85,6 +92,32 @@ below the average destructively. See `interference()`.}
 
 \item{interference_lambda}{Numeric >= 0. Strength of the amplitude
 interference (used only with `interference_type = "amplitude"`). Default 0.5.}
+
+\item{epsilon}{Numeric in \[0, 0.5). H-epsilon gate (Han & Kim, 2004): the
+probability of each bit value is kept in \[`epsilon`, 1 - `epsilon`\], so
+that qubits never collapse to a deterministic state. Default 0 (no gate).}
+
+\item{restart_iters}{Integer or NULL. If set, when the best fitness does not
+improve for `restart_iters` generations, the population (except the best
+individual) is partially brought back towards equal probabilities.
+Should be smaller than `stop_iters`. Default NULL (no restart).}
+
+\item{restart_strength}{Numeric in \[0, 1\]. Fraction of the way each qubit
+angle is moved towards pi/4 at a restart (1 = full reset). Default 0.5.}
+
+\item{attractor_type}{Character. What each individual is rotated towards:
+`"generation"` (default), the best individual of the current generation;
+`"personal"`, its own attractor, i.e. the best solution it has found so
+far, shared through local and global migration (Han & Kim, 2002).}
+
+\item{migration_group_size}{Integer. Size of the groups of consecutive
+individuals for local migration (`attractor_type = "personal"`). Default 2.}
+
+\item{migration_local_period}{Integer or NULL. Every this many generations,
+the best attractor of each group is copied to the group. Default 1.}
+
+\item{migration_global_period}{Integer or NULL. Every this many generations,
+the best attractor is copied to all individuals. Default 50.}
 
 \item{parallel}{Logical. If TRUE, fitness evaluation is distributed over
 `detectCores() - 1` workers via `foreach`/`doParallel`. Default FALSE

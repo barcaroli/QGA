@@ -1,0 +1,207 @@
+---
+title: "Avoiding local optima"
+author: "Giulio Barcaroli"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Avoiding local optima}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+library(QGA)
+options(width = 999)
+knitr::opts_chunk$set(fig.width=7, fig.height=4.5,
+  collapse = TRUE,
+  comment = "#>")
+```
+
+# Why the QGA gets stuck
+
+Like most evolutionary algorithms, the QGA can converge prematurely to a local optimum. In the QGA this happens for three reasons:
+
+1. **All individuals follow the same attractor.** At each generation the rotation gate moves the qubits of every individual towards the best individual of the generation. After a few generations the population becomes homogeneous, and the search continues only around that solution.
+
+2. **Qubits saturate.** When the probability of a bit value approaches 0 or 1, the measurement becomes deterministic. Near these extremes the rotation changes the probability very little, so the bit is practically frozen.
+
+3. **A large rotation angle accelerates convergence.** `theta` is the step by which every qubit is rotated *towards the best solution*: a large `theta` does not mean more exploration, but faster collapse on the first good solution found. Exploration comes from keeping the qubits in superposition.
+
+Mutation and interference do not solve the problem: mutation acts on very few qubits, and interference only redistributes the diversity that is already in the population, without creating new diversity.
+
+The `QGA` function offers some parameters to counteract premature convergence. They are all switched off by default, so that the standard behaviour is unchanged.
+
+# A deceptive test problem
+
+To show their effect we use a *deceptive trap* function: the solution is made of 12 blocks of 4 bits; the value of each block is 4 if all its bits are 1, otherwise 3 minus the number of ones. The global optimum (all ones) is 48, but each block "pushes" towards all zeros, a local optimum worth 36.
+
+```{r}
+trap4 <- function(solution, eval_func_inputs) {
+  bits <- solution - 1                 # QGA values are 1..nvalues_sol
+  u <- colSums(matrix(bits, nrow = 4)) # number of ones in each block
+  sum(ifelse(u == 4, 4, 3 - u))
+}
+```
+
+We run the QGA with the default parameters:
+
+```{r, results='hide', fig.show='hide'}
+set.seed(1)
+base <- QGA(popsize = 20,
+            generation_max = 300,
+            nvalues_sol = 2,
+            Genome = 48,
+            eval_fitness = trap4,
+            eval_func_inputs = NULL,
+            plotting = FALSE,
+            verbose = FALSE,
+            progress = FALSE)
+```
+
+```{r}
+max(base[[2]]$fitness_best)
+```
+
+# The parameters
+
+## Rotation angle: `thetainit` and `thetaend`
+
+The rotation angle decreases linearly from `thetainit` to `thetaend`. A qubit starts around pi/4 (equal probabilities) and becomes deterministic at 0 or pi/2: if it is always pushed in the same direction, it saturates after about (pi/4)/theta generations.
+
+```{r, echo=FALSE}
+th <- c(0.05, 0.025, 0.01, 0.005, 0.001)
+knitr::kable(data.frame(theta = paste0(th, "*pi"),
+                        generations_to_saturate = round(0.25 / th)))
+```
+
+With the default values (`thetainit = 0.05*pi`, `thetaend = 0.025*pi`) a bit can be decided in 5 to 10 generations. As a rule of thumb, choose `theta` so that saturation requires at least 10-20% of `generation_max`, for instance `thetainit = 0.01*pi` and `thetaend = 0.005*pi` with 200-300 generations. Smaller values slow down convergence, so more generations may be needed.
+
+## H-epsilon gate: `epsilon`
+
+The H-epsilon gate (Han and Kim, 2004) keeps the probability of each bit value in [`epsilon`, 1 - `epsilon`], so that qubits never collapse completely and every bit always keeps a small probability of changing. Typical values are 0.01-0.05.
+
+```{r, eval=FALSE}
+QGA(..., epsilon = 0.02)
+```
+
+In our experiments the gate alone did not improve the results: with small values it acts like a light mutation. It can be useful in combination with the other options.
+
+## Partial restart: `restart_iters` and `restart_strength`
+
+When the best fitness does not improve for `restart_iters` generations, the population is partially brought back towards equal probabilities: the angle of each qubit is moved towards pi/4 by the fraction `restart_strength` (0 = no change, 1 = complete reset). The individual equal to the best solution is preserved, so nothing already found is lost. After a restart the counter starts again.
+
+```{r, results='hide', fig.show='hide'}
+set.seed(1)
+restart <- QGA(popsize = 20,
+               generation_max = 300,
+               nvalues_sol = 2,
+               Genome = 48,
+               eval_fitness = trap4,
+               eval_func_inputs = NULL,
+               plotting = FALSE,
+               verbose = FALSE,
+               progress = FALSE,
+               restart_iters = 20,
+               restart_strength = 0.5)
+```
+
+```{r}
+max(restart[[2]]$fitness_best)
+```
+
+Too frequent restarts (small `restart_iters`) do not give the population the time to converge; if `stop_iters` is used, `restart_iters` must be smaller than `stop_iters`, otherwise the algorithm stops before any restart.
+
+## Personal attractors and migration: `attractor_type = "personal"`
+
+With `attractor_type = "personal"` (Han and Kim, 2002) every individual is rotated towards its own attractor, i.e. the best solution it has found so far, instead of the best individual of the generation. In this way the population keeps several "niches" of search. The attractors are shared through migration:
+
+- `migration_group_size` (default 2): the population is divided into groups of consecutive individuals;
+- `migration_local_period` (default 1): every this many generations, the best attractor of each group is copied to the other members of the group (local migration);
+- `migration_global_period` (default 50): every this many generations, the best attractor is copied to all individuals (global migration).
+
+Larger groups and more frequent global migration make the search more similar to the standard one; smaller groups and rarer global migration preserve more diversity, but slow down convergence.
+
+```{r, results='hide', fig.show='hide'}
+set.seed(1)
+personal <- QGA(popsize = 20,
+                generation_max = 300,
+                nvalues_sol = 2,
+                Genome = 48,
+                eval_fitness = trap4,
+                eval_func_inputs = NULL,
+                plotting = FALSE,
+                verbose = FALSE,
+                progress = FALSE,
+                attractor_type = "personal")
+```
+
+```{r}
+max(personal[[2]]$fitness_best)
+```
+
+## Interference: `interference_flag`, `interference_type`, `interference_rate`, `interference_lambda`
+
+The interference operator recombines information among individuals, with probability `interference_rate` at each generation:
+
+- `interference_type = "diagonal"`: the amplitudes of the j-th qubit of each individual are copied from another individual following a diagonal scheme (Narayanan and Moore, 1996);
+- `interference_type = "amplitude"`: each qubit receives the sum of the amplitudes of the whole population, weighted by fitness, so that individuals above the average fitness interfere constructively and those below destructively; `interference_lambda` sets the strength.
+
+Being a recombination operator, interference does not create new diversity, and in our experiments it did not help to escape local optima.
+
+## Comparing the runs
+
+```{r}
+plot(base[[2]]$fitness_best, type = "l", ylim = c(30, 48),
+     xlab = "generation", ylab = "best fitness")
+lines(restart[[2]]$fitness_best, col = "red")
+lines(personal[[2]]$fitness_best, col = "blue")
+abline(h = 48, lty = 2)
+legend("bottomright", lty = 1, col = c("black", "red", "blue"),
+       legend = c("default", "restart_iters = 20", "attractor_type = 'personal'"))
+```
+
+A single run is not enough to compare the options, because the QGA is stochastic. The following section reports the results obtained on 20 runs for each configuration.
+
+# Benchmark results
+
+Two problems with known optimum were used, with `popsize = 20`, `generation_max = 300`, 20 seeds for each configuration, default `theta`:
+
+- **trap-4**: the deceptive function above (optimum 48);
+- **Rastrigin**: 6 dimensions, 64 values in [-5.12, 4.96] for each dimension, a function with many local optima (maximum 0).
+
+The column `last_improvement` is the average generation of the last improvement of the best fitness: low values mean that the search stopped early.
+
+```{r, echo=FALSE}
+res <- data.frame(
+  configuration = c("default", "epsilon = 0.02", "restart_iters = 20",
+                    "attractor_type = 'personal'", "all three",
+                    "personal + restart_iters = 10", "personal + restart_iters = 20",
+                    "personal + restart_iters = 40"),
+  trap4_mean = c(42.25, 41.65, 46.20, 44.80, 43.70, 42.30, 44.50, 44.75),
+  trap4_optimum_found = c("0/20", "0/20", "12/20", "0/20", "0/20", "0/20", "0/20", "0/20"),
+  trap4_last_improvement = c(64, 49, 214, 111, 130, 126, 131, 116),
+  rastrigin_mean = c(-11.31, -10.76, -10.69, -7.96, -7.25, -11.88, -8.34, -7.67),
+  rastrigin_last_improvement = c(124, 177, 96, 221, 217, 192, 232, 220))
+knitr::kable(res)
+```
+
+The main findings are:
+
+- **restart** is the most effective option on the deceptive problem: it finds the global optimum in 12 runs out of 20, while the default configuration never escapes the trap; on Rastrigin it does not help;
+- **personal attractors** are the only option that improves significantly on both problems; the search goes on until the end of the run, so more generations would probably improve the results further;
+- the **H-epsilon gate** alone does not help;
+- **combining** restart and personal attractors does not add up their advantages: the result is similar to personal attractors alone. A possible explanation is that after a restart the individuals are rotated back towards their old attractors, i.e. towards the same local optima.
+
+# Practical recommendations
+
+- Start from smaller rotation angles than the defaults, taking into account the number of generations (see the table above).
+- If the fitness history shows a long flat line with an early last improvement, try a partial restart, e.g. `restart_iters = 20`, `restart_strength = 0.5`.
+- For problems with many local optima scattered in the search space, try `attractor_type = "personal"`, possibly with more generations.
+- Always compare the options on several runs (different seeds), and if the fitness evaluation is expensive consider `parallel = TRUE`.
+
+# References
+
+- Han, K.-H. and Kim, J.-H. (2002). Quantum-inspired evolutionary algorithm for a class of combinatorial optimization. *IEEE Transactions on Evolutionary Computation*, 6(6), 580-593.
+- Han, K.-H. and Kim, J.-H. (2004). Quantum-inspired evolutionary algorithms with a new termination criterion, H-epsilon gate, and two-phase scheme. *IEEE Transactions on Evolutionary Computation*, 8(2), 156-169.
+- Narayanan, A. and Moore, M. (1996). Quantum-inspired genetic algorithms. *Proceedings of IEEE International Conference on Evolutionary Computation*, 61-66.
