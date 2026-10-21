@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Giulio Barcaroli" />
+
+<meta name="date" content="2026-10-21" />
+
+<title>Avoiding local optima</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Avoiding local optima</h1>
+<h4 class="author">Giulio Barcaroli</h4>
+<h4 class="date">2026-10-21</h4>
+
+
+
+<div id="why-the-qga-gets-stuck" class="section level1">
+<h1>Why the QGA gets stuck</h1>
+<p>Like most evolutionary algorithms, the QGA can converge prematurely
+to a local optimum. In the QGA this happens for three reasons:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>All individuals follow the same attractor.</strong> At
+each generation the rotation gate moves the qubits of every individual
+towards the best individual of the generation. After a few generations
+the population becomes homogeneous, and the search continues only around
+that solution.</p></li>
+<li><p><strong>Qubits saturate.</strong> When the probability of a bit
+value approaches 0 or 1, the measurement becomes deterministic. Near
+these extremes the rotation changes the probability very little, so the
+bit is practically frozen.</p></li>
+<li><p><strong>A large rotation angle accelerates convergence.</strong>
+<code>theta</code> is the step by which every qubit is rotated
+<em>towards the best solution</em>: a large <code>theta</code> does not
+mean more exploration, but faster collapse on the first good solution
+found. Exploration comes from keeping the qubits in
+superposition.</p></li>
+</ol>
+<p>Mutation and interference do not solve the problem: mutation acts on
+very few qubits, and interference only redistributes the diversity that
+is already in the population, without creating new diversity.</p>
+<p>The <code>QGA</code> function offers some parameters to counteract
+premature convergence. They are all switched off by default, so that the
+standard behaviour is unchanged.</p>
+</div>
+<div id="a-deceptive-test-problem" class="section level1">
+<h1>A deceptive test problem</h1>
+<p>To show their effect we use a <em>deceptive trap</em> function: the
+solution is made of 12 blocks of 4 bits; the value of each block is 4 if
+all its bits are 1, otherwise 3 minus the number of ones. The global
+optimum (all ones) is 48, but each block “pushes” towards all zeros, a
+local optimum worth 36.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>trap4 <span class="ot">&lt;-</span> <span class="cf">function</span>(solution, eval_func_inputs) {</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  bits <span class="ot">&lt;-</span> solution <span class="sc">-</span> <span class="dv">1</span>                 <span class="co"># QGA values are 1..nvalues_sol</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  u <span class="ot">&lt;-</span> <span class="fu">colSums</span>(<span class="fu">matrix</span>(bits, <span class="at">nrow =</span> <span class="dv">4</span>)) <span class="co"># number of ones in each block</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="fu">sum</span>(<span class="fu">ifelse</span>(u <span class="sc">==</span> <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">3</span> <span class="sc">-</span> u))</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>}</span></code></pre></div>
+<p>We run the QGA with the default parameters:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="fu">QGA</span>(<span class="at">popsize =</span> <span class="dv">20</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>            <span class="at">generation_max =</span> <span class="dv">300</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>            <span class="at">nvalues_sol =</span> <span class="dv">2</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>            <span class="at">Genome =</span> <span class="dv">48</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>            <span class="at">eval_fitness =</span> trap4,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>            <span class="at">eval_func_inputs =</span> <span class="cn">NULL</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>            <span class="at">plotting =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>            <span class="at">verbose =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>            <span class="at">progress =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">max</span>(base[[<span class="dv">2</span>]]<span class="sc">$</span>fitness_best)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; [1] 44</span></span></code></pre></div>
+</div>
+<div id="the-parameters" class="section level1">
+<h1>The parameters</h1>
+<div id="rotation-angle-thetainit-and-thetaend" class="section level2">
+<h2>Rotation angle: <code>thetainit</code> and
+<code>thetaend</code></h2>
+<p>The rotation angle decreases linearly from <code>thetainit</code> to
+<code>thetaend</code>. A qubit starts around pi/4 (equal probabilities)
+and becomes deterministic at 0 or pi/2: if it is always pushed in the
+same direction, it saturates after about (pi/4)/theta generations.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">theta</th>
+<th align="right">generations_to_saturate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0.05*pi</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="left">0.025*pi</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="left">0.01*pi</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="left">0.005*pi</td>
+<td align="right">50</td>
+</tr>
+<tr class="odd">
+<td align="left">0.001*pi</td>
+<td align="right">250</td>
+</tr>
+</tbody>
+</table>
+<p>With the default values (<code>thetainit = 0.05*pi</code>,
+<code>thetaend = 0.025*pi</code>) a bit can be decided in 5 to 10
+generations. As a rule of thumb, choose <code>theta</code> so that
+saturation requires at least 10-20% of <code>generation_max</code>, for
+instance <code>thetainit = 0.01*pi</code> and
+<code>thetaend = 0.005*pi</code> with 200-300 generations. Smaller
+values slow down convergence, so more generations may be needed.</p>
+</div>
+<div id="h-epsilon-gate-epsilon" class="section level2">
+<h2>H-epsilon gate: <code>epsilon</code></h2>
+<p>The H-epsilon gate (Han and Kim, 2004) keeps the probability of each
+bit value in [<code>epsilon</code>, 1 - <code>epsilon</code>], so that
+qubits never collapse completely and every bit always keeps a small
+probability of changing. Typical values are 0.01-0.05.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">QGA</span>(..., <span class="at">epsilon =</span> <span class="fl">0.02</span>)</span></code></pre></div>
+<p>In our experiments the gate alone did not improve the results: with
+small values it acts like a light mutation. It can be useful in
+combination with the other options.</p>
+</div>
+<div id="partial-restart-restart_iters-and-restart_strength" class="section level2">
+<h2>Partial restart: <code>restart_iters</code> and
+<code>restart_strength</code></h2>
+<p>When the best fitness does not improve for <code>restart_iters</code>
+generations, the population is partially brought back towards equal
+probabilities: the angle of each qubit is moved towards pi/4 by the
+fraction <code>restart_strength</code> (0 = no change, 1 = complete
+reset). The individual equal to the best solution is preserved, so
+nothing already found is lost. After a restart the counter starts
+again.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>restart <span class="ot">&lt;-</span> <span class="fu">QGA</span>(<span class="at">popsize =</span> <span class="dv">20</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>               <span class="at">generation_max =</span> <span class="dv">300</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>               <span class="at">nvalues_sol =</span> <span class="dv">2</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>               <span class="at">Genome =</span> <span class="dv">48</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>               <span class="at">eval_fitness =</span> trap4,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>               <span class="at">eval_func_inputs =</span> <span class="cn">NULL</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>               <span class="at">plotting =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>               <span class="at">verbose =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>               <span class="at">progress =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>               <span class="at">restart_iters =</span> <span class="dv">20</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>               <span class="at">restart_strength =</span> <span class="fl">0.5</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">max</span>(restart[[<span class="dv">2</span>]]<span class="sc">$</span>fitness_best)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; [1] 48</span></span></code></pre></div>
+<p>If <code>stop_iters</code> is used, <code>restart_iters</code> must
+be smaller than <code>stop_iters</code>, otherwise the algorithm stops
+before any restart.</p>
+<div id="choosing-restart_iters-and-restart_strength" class="section level3">
+<h3>Choosing <code>restart_iters</code> and
+<code>restart_strength</code></h3>
+<p>The benchmark below (20 seeds for each configuration,
+<code>popsize = 20</code>, default <code>theta</code>; see the last
+section for the two problems) shows that the good values of
+<code>restart_iters</code> do <strong>not</strong> scale with
+<code>generation_max</code>: they depend on the time a qubit needs to
+saturate, about (pi/4)/theta generations (see the table on
+<code>theta</code> above). With the default angles this time is 5-10
+generations, and on trap-4 <code>restart_iters = 20</code> finds the
+optimum in 20 runs out of 20 with 600 generations, while
+<code>restart_iters = 40</code> never does, with 300 or 600 generations.
+Frequent restarts work because the population never collapses
+completely: every restart pushes it back in superposition before the
+qubits freeze.</p>
+<table>
+<colgroup>
+<col width="16%" />
+<col width="15%" />
+<col width="18%" />
+<col width="11%" />
+<col width="21%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">generation_max</th>
+<th align="left">restart_iters</th>
+<th align="left">restart_strength</th>
+<th align="right">trap4_mean</th>
+<th align="left">trap4_optimum_found</th>
+<th align="right">rastrigin_mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">none</td>
+<td align="left"></td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.31</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">10</td>
+<td align="left">0.25</td>
+<td align="right">46.50</td>
+<td align="left">14/20</td>
+<td align="right">-11.72</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">10</td>
+<td align="left">0.5</td>
+<td align="right">48.00</td>
+<td align="left">20/20</td>
+<td align="right">-15.58</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">10</td>
+<td align="left">1</td>
+<td align="right">40.90</td>
+<td align="left">1/20</td>
+<td align="right">-19.99</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">20</td>
+<td align="left">0.25</td>
+<td align="right">42.30</td>
+<td align="left">0/20</td>
+<td align="right">-11.00</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">20</td>
+<td align="left">0.5</td>
+<td align="right">46.20</td>
+<td align="left">12/20</td>
+<td align="right">-10.69</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">20</td>
+<td align="left">1</td>
+<td align="right">43.20</td>
+<td align="left">3/20</td>
+<td align="right">-14.07</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">40</td>
+<td align="left">0.25</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.27</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">40</td>
+<td align="left">0.5</td>
+<td align="right">42.20</td>
+<td align="left">0/20</td>
+<td align="right">-10.21</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">40</td>
+<td align="left">1</td>
+<td align="right">42.80</td>
+<td align="left">1/20</td>
+<td align="right">-11.36</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">80</td>
+<td align="left">0.25</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.16</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">80</td>
+<td align="left">0.5</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.24</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">80</td>
+<td align="left">1</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-10.08</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">none</td>
+<td align="left"></td>
+<td align="right">42.20</td>
+<td align="left">0/20</td>
+<td align="right">-12.39</td>
+</tr>
+<tr class="odd">
+<td align="right">150</td>
+<td align="left">5</td>
+<td align="left">0.5</td>
+<td align="right">37.10</td>
+<td align="left">5/20</td>
+<td align="right">-27.75</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">10</td>
+<td align="left">0.5</td>
+<td align="right">45.40</td>
+<td align="left">14/20</td>
+<td align="right">-19.75</td>
+</tr>
+<tr class="odd">
+<td align="right">150</td>
+<td align="left">20</td>
+<td align="left">0.5</td>
+<td align="right">42.10</td>
+<td align="left">0/20</td>
+<td align="right">-13.09</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">40</td>
+<td align="left">0.5</td>
+<td align="right">42.20</td>
+<td align="left">0/20</td>
+<td align="right">-12.77</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">none</td>
+<td align="left"></td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-9.16</td>
+</tr>
+<tr class="even">
+<td align="right">600</td>
+<td align="left">20</td>
+<td align="left">0.5</td>
+<td align="right">48.00</td>
+<td align="left">20/20</td>
+<td align="right">-9.98</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">40</td>
+<td align="left">0.5</td>
+<td align="right">42.30</td>
+<td align="left">0/20</td>
+<td align="right">-8.45</td>
+</tr>
+<tr class="even">
+<td align="right">600</td>
+<td align="left">80</td>
+<td align="left">0.5</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-9.17</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">160</td>
+<td align="left">0.5</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-9.33</td>
+</tr>
+</tbody>
+</table>
+<p>From these results:</p>
+<ul>
+<li><strong><code>restart_strength</code></strong>: 0.5 is the best
+compromise. A complete reset (1) throws away what the population has
+learned and is equivalent to a random restart; a weak restart (0.25)
+helps only if it is very frequent.</li>
+<li><strong><code>restart_iters</code></strong>: on a deceptive problem,
+take 1.5-3 times the saturation time, i.e. <strong>10-20 with the
+default angles</strong>, and proportionally more with smaller angles
+(for instance 40-80 with <code>thetainit = 0.01*pi</code>). On a problem
+with many local optima, like Rastrigin, frequent restarts are harmful
+(they interrupt the local search), and less frequent restarts (40-80)
+give at most a small improvement.</li>
+<li><strong><code>generation_max</code></strong>: it does not determine
+<code>restart_iters</code>, but it must leave room for several restarts
+after the population has converged: with 150 generations even
+<code>restart_iters = 10</code> is less effective than with 300. As a
+rough rule, <code>generation_max</code> should be at least 10-15 times
+<code>restart_iters</code>.</li>
+</ul>
+</div>
+<div id="restoring-the-rotation-angle-restart_theta" class="section level3">
+<h3>Restoring the rotation angle: <code>restart_theta</code></h3>
+<p>Since <code>theta</code> decays during the run, a late restart works
+with a small angle. With <code>restart_theta = TRUE</code>, at each
+restart <code>theta</code> is brought back to <code>thetainit</code> and
+decays again to <code>thetaend</code> over the remaining
+generations.</p>
+<table>
+<colgroup>
+<col width="13%" />
+<col width="12%" />
+<col width="15%" />
+<col width="16%" />
+<col width="15%" />
+<col width="14%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">generation_max</th>
+<th align="right">restart_iters</th>
+<th align="right">restart_strength</th>
+<th align="left">trap4_found_FALSE</th>
+<th align="left">trap4_found_TRUE</th>
+<th align="right">rastrigin_FALSE</th>
+<th align="right">rastrigin_TRUE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">300</td>
+<td align="right">20</td>
+<td align="right">0.5</td>
+<td align="left">12/20</td>
+<td align="left">1/20</td>
+<td align="right">-10.69</td>
+<td align="right">-10.39</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="right">20</td>
+<td align="right">1.0</td>
+<td align="left">3/20</td>
+<td align="left">10/20</td>
+<td align="right">-14.07</td>
+<td align="right">-13.16</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="right">40</td>
+<td align="right">0.5</td>
+<td align="left">0/20</td>
+<td align="left">0/20</td>
+<td align="right">-10.21</td>
+<td align="right">-9.57</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="right">40</td>
+<td align="right">1.0</td>
+<td align="left">1/20</td>
+<td align="left">2/20</td>
+<td align="right">-11.36</td>
+<td align="right">-10.10</td>
+</tr>
+<tr class="odd">
+<td align="right">150</td>
+<td align="right">10</td>
+<td align="right">0.5</td>
+<td align="left">14/20</td>
+<td align="left">18/20</td>
+<td align="right">-19.75</td>
+<td align="right">-16.88</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="right">20</td>
+<td align="right">0.5</td>
+<td align="left">0/20</td>
+<td align="left">0/20</td>
+<td align="right">-13.09</td>
+<td align="right">-12.90</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="right">40</td>
+<td align="right">0.5</td>
+<td align="left">0/20</td>
+<td align="left">0/20</td>
+<td align="right">-8.45</td>
+<td align="right">-7.99</td>
+</tr>
+<tr class="even">
+<td align="right">600</td>
+<td align="right">80</td>
+<td align="right">0.5</td>
+<td align="left">0/20</td>
+<td align="left">0/20</td>
+<td align="right">-9.17</td>
+<td align="right">-8.84</td>
+</tr>
+</tbody>
+</table>
+<p>The effect is mixed. On Rastrigin restoring the angle always gives a
+slightly better mean, but the differences are small compared with the
+variability among seeds. On trap-4 it helps after a complete reset
+(<code>restart_strength = 1</code>) and with few generations, but it
+spoils the best configuration (<code>restart_iters = 20</code>,
+<code>restart_strength = 0.5</code>: from 12/20 to 1/20). The reason is
+that <code>theta</code> is the step towards the attractor: right after a
+partial restart the attractor is still the best solution, and a larger
+angle brings the population back to it more quickly. For this reason
+<code>restart_theta</code> is off by default; it can be tried together
+with stronger restarts.</p>
+</div>
+</div>
+<div id="personal-attractors-and-migration-attractor_type-personal" class="section level2">
+<h2>Personal attractors and migration:
+<code>attractor_type = &quot;personal&quot;</code></h2>
+<p>With <code>attractor_type = &quot;personal&quot;</code> (Han and Kim, 2002)
+every individual is rotated towards its own attractor, i.e. the best
+solution it has found so far, instead of the best individual of the
+generation. In this way the population keeps several “niches” of search.
+The attractors are shared through migration:</p>
+<ul>
+<li><code>migration_group_size</code> (default 2): the population is
+divided into groups of consecutive individuals;</li>
+<li><code>migration_local_period</code> (default 1): every this many
+generations, the best attractor of each group is copied to the other
+members of the group (local migration);</li>
+<li><code>migration_global_period</code> (default 50): every this many
+generations, the best attractor is copied to all individuals (global
+migration).</li>
+</ul>
+<p>Larger groups and more frequent global migration make the search more
+similar to the standard one; smaller groups and rarer global migration
+preserve more diversity, but slow down convergence.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>personal <span class="ot">&lt;-</span> <span class="fu">QGA</span>(<span class="at">popsize =</span> <span class="dv">20</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>                <span class="at">generation_max =</span> <span class="dv">300</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>                <span class="at">nvalues_sol =</span> <span class="dv">2</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>                <span class="at">Genome =</span> <span class="dv">48</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>                <span class="at">eval_fitness =</span> trap4,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>                <span class="at">eval_func_inputs =</span> <span class="cn">NULL</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>                <span class="at">plotting =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>                <span class="at">verbose =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>                <span class="at">progress =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>                <span class="at">attractor_type =</span> <span class="st">&quot;personal&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">max</span>(personal[[<span class="dv">2</span>]]<span class="sc">$</span>fitness_best)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; [1] 45</span></span></code></pre></div>
+</div>
+<div id="interference-interference_flag-interference_type-interference_rate-interference_lambda" class="section level2">
+<h2>Interference: <code>interference_flag</code>,
+<code>interference_type</code>, <code>interference_rate</code>,
+<code>interference_lambda</code></h2>
+<p>The interference operator recombines information among individuals,
+with probability <code>interference_rate</code> at each generation:</p>
+<ul>
+<li><code>interference_type = &quot;diagonal&quot;</code>: the amplitudes of the
+j-th qubit of each individual are copied from another individual
+following a diagonal scheme (Narayanan and Moore, 1996);</li>
+<li><code>interference_type = &quot;amplitude&quot;</code>: each qubit receives
+the sum of the amplitudes of the whole population, weighted by fitness,
+so that individuals above the average fitness interfere constructively
+and those below destructively; <code>interference_lambda</code> sets the
+strength.</li>
+</ul>
+<p>Being a recombination operator, interference does not create new
+diversity, and in our experiments it did not help to escape local
+optima.</p>
+</div>
+<div id="comparing-the-runs" class="section level2">
+<h2>Comparing the runs</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">plot</span>(base[[<span class="dv">2</span>]]<span class="sc">$</span>fitness_best, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">30</span>, <span class="dv">48</span>),</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;generation&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;best fitness&quot;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">lines</span>(restart[[<span class="dv">2</span>]]<span class="sc">$</span>fitness_best, <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="fu">lines</span>(personal[[<span class="dv">2</span>]]<span class="sc">$</span>fitness_best, <span class="at">col =</span> <span class="st">&quot;blue&quot;</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">48</span>, <span class="at">lty =</span> <span class="dv">2</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;bottomright&quot;</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">col =</span> <span class="fu">c</span>(<span class="st">&quot;black&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;blue&quot;</span>),</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">&quot;default&quot;</span>, <span class="st">&quot;restart_iters = 20&quot;</span>, <span class="st">&quot;attractor_type = &#39;personal&#39;&quot;</span>))</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+<p>A single run is not enough to compare the options, because the QGA is
+stochastic. The following section reports the results obtained on 20
+runs for each configuration.</p>
+</div>
+</div>
+<div id="benchmark-results" class="section level1">
+<h1>Benchmark results</h1>
+<p>Two problems with known optimum were used, with
+<code>popsize = 20</code>, <code>generation_max = 300</code>, 20 seeds
+for each configuration, default <code>theta</code>:</p>
+<ul>
+<li><strong>trap-4</strong>: the deceptive function above (optimum
+48);</li>
+<li><strong>Rastrigin</strong>: 6 dimensions, 64 values in [-5.12, 4.96]
+for each dimension, a function with many local optima (maximum 0).</li>
+</ul>
+<p>The column <code>last_improvement</code> is the average generation of
+the last improvement of the best fitness: low values mean that the
+search stopped early.</p>
+<table>
+<colgroup>
+<col width="23%" />
+<col width="8%" />
+<col width="15%" />
+<col width="18%" />
+<col width="11%" />
+<col width="21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">configuration</th>
+<th align="right">trap4_mean</th>
+<th align="left">trap4_optimum_found</th>
+<th align="right">trap4_last_improvement</th>
+<th align="right">rastrigin_mean</th>
+<th align="right">rastrigin_last_improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">default</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">64</td>
+<td align="right">-11.31</td>
+<td align="right">124</td>
+</tr>
+<tr class="even">
+<td align="left">epsilon = 0.02</td>
+<td align="right">41.65</td>
+<td align="left">0/20</td>
+<td align="right">49</td>
+<td align="right">-10.76</td>
+<td align="right">177</td>
+</tr>
+<tr class="odd">
+<td align="left">restart_iters = 20</td>
+<td align="right">46.20</td>
+<td align="left">12/20</td>
+<td align="right">214</td>
+<td align="right">-10.69</td>
+<td align="right">96</td>
+</tr>
+<tr class="even">
+<td align="left">attractor_type = ‘personal’</td>
+<td align="right">44.80</td>
+<td align="left">0/20</td>
+<td align="right">111</td>
+<td align="right">-7.96</td>
+<td align="right">221</td>
+</tr>
+<tr class="odd">
+<td align="left">all three</td>
+<td align="right">43.70</td>
+<td align="left">0/20</td>
+<td align="right">130</td>
+<td align="right">-7.25</td>
+<td align="right">217</td>
+</tr>
+<tr class="even">
+<td align="left">personal + restart_iters = 10</td>
+<td align="right">42.30</td>
+<td align="left">0/20</td>
+<td align="right">126</td>
+<td align="right">-11.88</td>
+<td align="right">192</td>
+</tr>
+<tr class="odd">
+<td align="left">personal + restart_iters = 20</td>
+<td align="right">44.50</td>
+<td align="left">0/20</td>
+<td align="right">131</td>
+<td align="right">-8.34</td>
+<td align="right">232</td>
+</tr>
+<tr class="even">
+<td align="left">personal + restart_iters = 40</td>
+<td align="right">44.75</td>
+<td align="left">0/20</td>
+<td align="right">116</td>
+<td align="right">-7.67</td>
+<td align="right">220</td>
+</tr>
+</tbody>
+</table>
+<p>The main findings are:</p>
+<ul>
+<li><strong>restart</strong> is the most effective option on the
+deceptive problem: it finds the global optimum in 12 runs out of 20,
+while the default configuration never escapes the trap; on Rastrigin it
+does not help;</li>
+<li><strong>personal attractors</strong> are the only option that
+improves significantly on both problems; the search goes on until the
+end of the run, so more generations would probably improve the results
+further;</li>
+<li>the <strong>H-epsilon gate</strong> alone does not help;</li>
+<li><strong>combining</strong> restart and personal attractors does not
+add up their advantages: the result is similar to personal attractors
+alone. A possible explanation is that after a restart the individuals
+are rotated back towards their old attractors, i.e. towards the same
+local optima.</li>
+</ul>
+</div>
+<div id="practical-recommendations" class="section level1">
+<h1>Practical recommendations</h1>
+<ul>
+<li>Start from smaller rotation angles than the defaults, taking into
+account the number of generations (see the table above).</li>
+<li>If the fitness history shows a long flat line with an early last
+improvement, try a partial restart with
+<code>restart_strength = 0.5</code> and <code>restart_iters</code> equal
+to 1.5-3 times the saturation time (pi/4)/theta, i.e. 10-20 with the
+default angles, independently of <code>generation_max</code>.</li>
+<li>Use <code>parameters_hint()</code> to get a first set of values from
+<code>generation_max</code>, the genome and the kind of problem (see
+below).</li>
+<li>For problems with many local optima scattered in the search space,
+try <code>attractor_type = &quot;personal&quot;</code>, possibly with more
+generations.</li>
+<li>Always compare the options on several runs (different seeds), and if
+the fitness evaluation is expensive consider
+<code>parallel = TRUE</code>.</li>
+</ul>
+</div>
+<div id="suggested-values-parameters_hint" class="section level1">
+<h1>Suggested values: <code>parameters_hint()</code></h1>
+<p>The function <code>parameters_hint()</code> turns the guidelines
+above into a first set of values, given <code>generation_max</code>, the
+genome (<code>Genome</code>, <code>nvalues_sol</code>) and the kind of
+problem (<code>&quot;deceptive&quot;</code>, <code>&quot;multimodal&quot;</code>,
+<code>&quot;unimodal&quot;</code> or <code>&quot;unknown&quot;</code>):</p>
+<ul>
+<li>the angles are chosen so that the saturation time is about
+<code>generation_max / 40</code> when restarts are used, and
+<code>generation_max / 10</code> otherwise, never faster than the
+default angles;</li>
+<li><code>restart_iters</code> is 1.5 times the saturation time for
+deceptive problems, 3 times when the problem is unknown, 6 times for
+problems with many local optima; no restart for unimodal problems;</li>
+<li><code>restart_strength = 0.5</code>; personal attractors for unknown
+and multimodal problems.</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>hint <span class="ot">&lt;-</span> <span class="fu">parameters_hint</span>(<span class="at">generation_max =</span> <span class="dv">300</span>, <span class="at">Genome =</span> <span class="dv">48</span>, <span class="at">nvalues_sol =</span> <span class="dv">2</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>                        <span class="at">problem_type =</span> <span class="st">&quot;deceptive&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt;  QGA parameters hint</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt;  -------------------</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt;  problem_type: deceptive; genome of 48 genes x 1 bits = 48 qubits; 300 generations</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt;  saturation time (pi/4)/theta: about 7.5 generations</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt;  thetainit        = 0.1396   (= 0.0444 * pi)</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt;  thetaend         = 0.0698   (= 0.0222 * pi)</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt;  restart_iters    = 11   (1.5 x saturation time)</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt;  restart_strength = 0.5</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt;  restart_theta    = FALSE  (experimental)</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt;  epsilon          = 0</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt;  attractor_type   = &quot;generation&quot;</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt;  fitness evaluations: up to 6020</span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt;  These are starting points: compare a few configurations on several seeds.</span></span></code></pre></div>
+<p>The returned list can be passed directly to <code>QGA()</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">do.call</span>(QGA, <span class="fu">c</span>(<span class="fu">list</span>(<span class="at">popsize =</span> <span class="dv">20</span>, <span class="at">generation_max =</span> <span class="dv">300</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>                           <span class="at">nvalues_sol =</span> <span class="dv">2</span>, <span class="at">Genome =</span> <span class="dv">48</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>                           <span class="at">eval_fitness =</span> trap4, <span class="at">eval_func_inputs =</span> <span class="cn">NULL</span>),</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>                      hint))</span></code></pre></div>
+<p>On the two test problems (20 seeds, <code>popsize = 20</code>) the
+suggested values improve on the defaults for every number of
+generations, both when the kind of problem is given and when it is
+declared unknown:</p>
+<table>
+<colgroup>
+<col width="17%" />
+<col width="29%" />
+<col width="12%" />
+<col width="22%" />
+<col width="17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">generation_max</th>
+<th align="left">configuration</th>
+<th align="right">trap4_mean</th>
+<th align="left">trap4_optimum_found</th>
+<th align="right">rastrigin_mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">150</td>
+<td align="left">default</td>
+<td align="right">42.20</td>
+<td align="left">0/20</td>
+<td align="right">-12.39</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">hint (problem type given)</td>
+<td align="right">45.40</td>
+<td align="left">14/20</td>
+<td align="right">-10.35</td>
+</tr>
+<tr class="odd">
+<td align="right">150</td>
+<td align="left">hint (unknown)</td>
+<td align="right">43.95</td>
+<td align="left">1/20</td>
+<td align="right">-11.21</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">default</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.31</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">hint (problem type given)</td>
+<td align="right">48.00</td>
+<td align="left">20/20</td>
+<td align="right">-9.00</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">hint (unknown)</td>
+<td align="right">44.00</td>
+<td align="left">1/20</td>
+<td align="right">-9.56</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">default</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-9.16</td>
+</tr>
+<tr class="even">
+<td align="right">600</td>
+<td align="left">hint (problem type given)</td>
+<td align="right">47.60</td>
+<td align="left">19/20</td>
+<td align="right">-6.02</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">hint (unknown)</td>
+<td align="right">43.50</td>
+<td align="left">0/20</td>
+<td align="right">-6.81</td>
+</tr>
+</tbody>
+</table>
+<p>Knowing the kind of problem helps, especially on the deceptive one:
+with <code>&quot;unknown&quot;</code> the function chooses personal attractors,
+which are a good compromise on both problems but are less effective than
+restarts alone on trap-4. The suggestions are starting points: compare a
+few configurations on several seeds.</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ul>
+<li>Han, K.-H. and Kim, J.-H. (2002). Quantum-inspired evolutionary
+algorithm for a class of combinatorial optimization. <em>IEEE
+Transactions on Evolutionary Computation</em>, 6(6), 580-593.</li>
+<li>Han, K.-H. and Kim, J.-H. (2004). Quantum-inspired evolutionary
+algorithms with a new termination criterion, H-epsilon gate, and
+two-phase scheme. <em>IEEE Transactions on Evolutionary
+Computation</em>, 8(2), 156-169.</li>
+<li>Narayanan, A. and Moore, M. (1996). Quantum-inspired genetic
+algorithms. <em>Proceedings of IEEE International Conference on
+Evolutionary Computation</em>, 61-66.</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

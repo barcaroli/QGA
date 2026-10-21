@@ -110,7 +110,51 @@ restart <- QGA(popsize = 20,
 max(restart[[2]]$fitness_best)
 ```
 
-Too frequent restarts (small `restart_iters`) do not give the population the time to converge; if `stop_iters` is used, `restart_iters` must be smaller than `stop_iters`, otherwise the algorithm stops before any restart.
+If `stop_iters` is used, `restart_iters` must be smaller than `stop_iters`, otherwise the algorithm stops before any restart.
+
+### Choosing `restart_iters` and `restart_strength`
+
+The benchmark below (20 seeds for each configuration, `popsize = 20`, default `theta`; see the last section for the two problems) shows that the good values of `restart_iters` do **not** scale with `generation_max`: they depend on the time a qubit needs to saturate, about (pi/4)/theta generations (see the table on `theta` above). With the default angles this time is 5-10 generations, and on trap-4 `restart_iters = 20` finds the optimum in 20 runs out of 20 with 600 generations, while `restart_iters = 40` never does, with 300 or 600 generations. Frequent restarts work because the population never collapses completely: every restart pushes it back in superposition before the qubits freeze.
+
+```{r, echo=FALSE}
+rst <- data.frame(
+  generation_max = c(rep(300, 13), rep(150, 5), rep(600, 5)),
+  restart_iters = c("none", 10, 10, 10, 20, 20, 20, 40, 40, 40, 80, 80, 80,
+                    "none", 5, 10, 20, 40, "none", 20, 40, 80, 160),
+  restart_strength = c("", 0.25, 0.5, 1, 0.25, 0.5, 1, 0.25, 0.5, 1, 0.25, 0.5, 1,
+                       "", rep(0.5, 4), "", rep(0.5, 4)),
+  trap4_mean = c(42.25, 46.50, 48.00, 40.90, 42.30, 46.20, 43.20, 42.25, 42.20, 42.80, 42.25, 42.25, 42.25,
+                 42.20, 37.10, 45.40, 42.10, 42.20, 42.25, 48.00, 42.30, 42.25, 42.25),
+  trap4_optimum_found = c("0/20", "14/20", "20/20", "1/20", "0/20", "12/20", "3/20", "0/20", "0/20", "1/20", "0/20", "0/20", "0/20",
+                          "0/20", "5/20", "14/20", "0/20", "0/20", "0/20", "20/20", "0/20", "0/20", "0/20"),
+  rastrigin_mean = c(-11.31, -11.72, -15.58, -19.99, -11.00, -10.69, -14.07, -11.27, -10.21, -11.36, -11.16, -11.24, -10.08,
+                     -12.39, -27.75, -19.75, -13.09, -12.77, -9.16, -9.98, -8.45, -9.17, -9.33))
+knitr::kable(rst)
+```
+
+From these results:
+
+- **`restart_strength`**: 0.5 is the best compromise. A complete reset (1) throws away what the population has learned and is equivalent to a random restart; a weak restart (0.25) helps only if it is very frequent.
+- **`restart_iters`**: on a deceptive problem, take 1.5-3 times the saturation time, i.e. **10-20 with the default angles**, and proportionally more with smaller angles (for instance 40-80 with `thetainit = 0.01*pi`). On a problem with many local optima, like Rastrigin, frequent restarts are harmful (they interrupt the local search), and less frequent restarts (40-80) give at most a small improvement.
+- **`generation_max`**: it does not determine `restart_iters`, but it must leave room for several restarts after the population has converged: with 150 generations even `restart_iters = 10` is less effective than with 300. As a rough rule, `generation_max` should be at least 10-15 times `restart_iters`.
+
+### Restoring the rotation angle: `restart_theta`
+
+Since `theta` decays during the run, a late restart works with a small angle. With `restart_theta = TRUE`, at each restart `theta` is brought back to `thetainit` and decays again to `thetaend` over the remaining generations.
+
+```{r, echo=FALSE}
+rth <- data.frame(
+  generation_max = c(300, 300, 300, 300, 150, 150, 600, 600),
+  restart_iters = c(20, 20, 40, 40, 10, 20, 40, 80),
+  restart_strength = c(0.5, 1, 0.5, 1, 0.5, 0.5, 0.5, 0.5),
+  trap4_found_FALSE = c("12/20", "3/20", "0/20", "1/20", "14/20", "0/20", "0/20", "0/20"),
+  trap4_found_TRUE = c("1/20", "10/20", "0/20", "2/20", "18/20", "0/20", "0/20", "0/20"),
+  rastrigin_FALSE = c(-10.69, -14.07, -10.21, -11.36, -19.75, -13.09, -8.45, -9.17),
+  rastrigin_TRUE = c(-10.39, -13.16, -9.57, -10.10, -16.88, -12.90, -7.99, -8.84))
+knitr::kable(rth)
+```
+
+The effect is mixed. On Rastrigin restoring the angle always gives a slightly better mean, but the differences are small compared with the variability among seeds. On trap-4 it helps after a complete reset (`restart_strength = 1`) and with few generations, but it spoils the best configuration (`restart_iters = 20`, `restart_strength = 0.5`: from 12/20 to 1/20). The reason is that `theta` is the step towards the attractor: right after a partial restart the attractor is still the best solution, and a larger angle brings the population back to it more quickly. For this reason `restart_theta` is off by default; it can be tried together with stronger restarts.
 
 ## Personal attractors and migration: `attractor_type = "personal"`
 
@@ -196,12 +240,70 @@ The main findings are:
 # Practical recommendations
 
 - Start from smaller rotation angles than the defaults, taking into account the number of generations (see the table above).
-- If the fitness history shows a long flat line with an early last improvement, try a partial restart, e.g. `restart_iters = 20`, `restart_strength = 0.5`.
+- If the fitness history shows a long flat line with an early last improvement, try a partial restart with `restart_strength = 0.5` and `restart_iters` equal to 1.5-3 times the saturation time (pi/4)/theta, i.e. 10-20 with the default angles, independently of `generation_max`.
+- Use `parameters_hint()` to get a first set of values from `generation_max`, the genome and the kind of problem (see below).
 - For problems with many local optima scattered in the search space, try `attractor_type = "personal"`, possibly with more generations.
 - Always compare the options on several runs (different seeds), and if the fitness evaluation is expensive consider `parallel = TRUE`.
 
+# Suggested values: `parameters_hint()`
+
+The function `parameters_hint()` turns the guidelines above into a first set of values, given `generation_max`, the genome (`Genome`, `nvalues_sol`) and the kind of problem (`"deceptive"`, `"multimodal"`, `"unimodal"` or `"unknown"`):
+
+- the angles are chosen so that the saturation time is about `generation_max / 40` when restarts are used, and `generation_max / 10` otherwise, never faster than the default angles;
+- `restart_iters` is 1.5 times the saturation time for deceptive problems, 3 times when the problem is unknown, 6 times for problems with many local optima; no restart for unimodal problems;
+- `restart_strength = 0.5`; personal attractors for unknown and multimodal problems.
+
+```{r}
+hint <- parameters_hint(generation_max = 300, Genome = 48, nvalues_sol = 2,
+                        problem_type = "deceptive")
+```
+
+The returned list can be passed directly to `QGA()`:
+
+```{r, eval=FALSE}
+out <- do.call(QGA, c(list(popsize = 20, generation_max = 300,
+                           nvalues_sol = 2, Genome = 48,
+                           eval_fitness = trap4, eval_func_inputs = NULL),
+                      hint))
+```
+
+On the two test problems (20 seeds, `popsize = 20`) the suggested values improve on the defaults for every number of generations, both when the kind of problem is given and when it is declared unknown:
+
+```{r, echo=FALSE}
+hnt <- data.frame(
+  generation_max = rep(c(150, 300, 600), each = 3),
+  configuration = rep(c("default", "hint (problem type given)", "hint (unknown)"), 3),
+  trap4_mean = c(42.20, 45.40, 43.95, 42.25, 48.00, 44.00, 42.25, 47.60, 43.50),
+  trap4_optimum_found = c("0/20", "14/20", "1/20", "0/20", "20/20", "1/20", "0/20", "19/20", "0/20"),
+  rastrigin_mean = c(-12.39, -10.35, -11.21, -11.31, -9.00, -9.56, -9.16, -6.02, -6.81))
+knitr::kable(hnt)
+```
+
+Knowing the kind of problem helps, especially on the deceptive one: with `"unknown"` the function chooses personal attractors, which are a good compromise on both problems but are less effective than restarts alone on trap-4. The suggestions are starting points: compare a few configurations on several seeds.
+
+## Which kind of problem?
+
+- **Unimodal**: there is a single optimum, i.e. every local optimum is also the global one; starting from any solution, a chain of small improvements (e.g. changing one bit at a time) always leads to the optimum. Typical examples are additive and separable fitness functions, where each gene contributes independently of the others (e.g. the number of bits equal to 1). Real problems are rarely unimodal.
+- **Multimodal**: there are many local optima, solutions that no small change can improve although better solutions exist elsewhere (e.g. Rastrigin). Almost all real combinatorial problems are multimodal (travelling salesman, knapsack with constraints, clustering, hub location), because of the interactions among genes (the value of a gene depends on the others) and of constraints handled with penalties, which split the search space into separate regions.
+- **Deceptive**: a special case of multimodal problem, in which the local optima have larger basins of attraction and partial improvements lead *away* from the global optimum (Goldberg, 1989): the combinations of a few genes that give on average a higher fitness are not part of the optimal solution. In trap-4, on average it pays to set the bits to 0, but the optimum has all bits equal to 1.
+
+The structure of the fitness function gives the first indications. Independent contributions of the genes suggest a unimodal problem; interactions or penalties a multimodal one. "All or nothing" rewards (a bonus only when a whole group of genes is complete, while intermediate configurations are worth less than the starting one), thresholds and penalties for intermediate states, or an optimum lying on a narrow boundary between constraints, reachable only through infeasible or penalised solutions, are typical signs of deception.
+
+The kind of problem can also be explored empirically:
+
+1. **Comparing configurations** on 5-10 seeds each (the simplest and usually sufficient test):
+   - with the default parameters, if all runs reach the same value and the same solution, the problem is probably unimodal (or at least easy); if they end on different solutions with different values, it is multimodal; if they converge early (low generation of last improvement) and *consistently* on the same mediocre solution, it may be deceptive;
+   - if frequent restarts (`problem_type = "deceptive"`) give a clear jump, as on trap-4 from 42 to 48, the problem is deceptive;
+   - if personal attractors help more than restarts, the problem is rather multimodal.
+2. **Marginal contributions of the genes**: on a random sample of solutions, find for each gene the value giving the highest average fitness, and build the corresponding "greedy" solution. If it is poor and differs in many genes from the best solution found by the QGA, the average signal is misleading, i.e. the problem is deceptive. On trap-4 the greedy solution is "all zeros", worth 36.
+3. **Fitness-distance correlation** (Jones and Forrest, 1995): on a sample of solutions, compute the correlation between fitness and Hamming distance from the best known solution. For a maximisation problem a clearly negative correlation (fitness grows when getting closer to the optimum) indicates an easy problem; a correlation close to zero a difficult one; a positive correlation a deceptive one. The optimum must be known: in practice the best solution found is used, with the caveat that it may not be the global one.
+
+`"unimodal"` removes the restarts and slows down the rotation, so it should be used only when one is sure: if the problem has traps, the risk of premature convergence increases. When in doubt, use `"unknown"` and switch to `"deceptive"` or `"multimodal"` if the comparison on several seeds suggests it.
+
 # References
 
+- Goldberg, D. E. (1989). *Genetic Algorithms in Search, Optimization and Machine Learning*. Addison-Wesley.
 - Han, K.-H. and Kim, J.-H. (2002). Quantum-inspired evolutionary algorithm for a class of combinatorial optimization. *IEEE Transactions on Evolutionary Computation*, 6(6), 580-593.
 - Han, K.-H. and Kim, J.-H. (2004). Quantum-inspired evolutionary algorithms with a new termination criterion, H-epsilon gate, and two-phase scheme. *IEEE Transactions on Evolutionary Computation*, 8(2), 156-169.
+- Jones, T. and Forrest, S. (1995). Fitness distance correlation as a measure of problem difficulty for genetic algorithms. *Proceedings of the Sixth International Conference on Genetic Algorithms*, 184-192.
 - Narayanan, A. and Moore, M. (1996). Quantum-inspired genetic algorithms. *Proceedings of IEEE International Conference on Evolutionary Computation*, 61-66.

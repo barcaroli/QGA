@@ -30,6 +30,7 @@ QGA(
   epsilon = 0,
   restart_iters = NULL,
   restart_strength = 0.5,
+  restart_theta = FALSE,
   attractor_type = c("generation", "personal"),
   migration_group_size = 2,
   migration_local_period = 1,
@@ -104,6 +105,10 @@ Should be smaller than `stop_iters`. Default NULL (no restart).}
 
 \item{restart_strength}{Numeric in \[0, 1\]. Fraction of the way each qubit
 angle is moved towards pi/4 at a restart (1 = full reset). Default 0.5.}
+
+\item{restart_theta}{Logical. If TRUE, at each restart the rotation angle is
+brought back to `thetainit` and decays again linearly to `thetaend` over
+the remaining generations. Default FALSE.}
 
 \item{attractor_type}{Character. What each individual is rotated towards:
 `"generation"` (default), the best individual of the current generation;

@@ -56,6 +56,9 @@
 #'   Should be smaller than `stop_iters`. Default NULL (no restart).
 #' @param restart_strength Numeric in \[0, 1\]. Fraction of the way each qubit
 #'   angle is moved towards pi/4 at a restart (1 = full reset). Default 0.5.
+#' @param restart_theta Logical. If TRUE, at each restart the rotation angle is
+#'   brought back to `thetainit` and decays again linearly to `thetaend` over
+#'   the remaining generations. Default FALSE.
 #' @param attractor_type Character. What each individual is rotated towards:
 #'   `"generation"` (default), the best individual of the current generation;
 #'   `"personal"`, its own attractor, i.e. the best solution it has found so
@@ -113,6 +116,7 @@ QGA <- function(popsize = 20,
                 epsilon = 0,
                 restart_iters = NULL,
                 restart_strength = 0.5,
+                restart_theta = FALSE,
                 attractor_type = c("generation", "personal"),
                 migration_group_size = 2,
                 migration_local_period = 1,
@@ -244,7 +248,8 @@ QGA <- function(popsize = 20,
   }
   last_improvement <- generation
   n_restarts       <- 0L
-  
+  theta_start      <- 0L   # generation from which theta decays (moved by restart_theta)
+
   # personal attractors: initially each individual's own solution
   if (attractor_type == "personal") {
     attractor         <- chromosome
@@ -273,7 +278,8 @@ QGA <- function(popsize = 20,
     if (progress) setTxtProgressBar(pb, generation)
     
     # linear decay of theta
-    theta <- thetainit - ((thetainit - thetaend) / generation_max) * generation
+    theta <- thetainit - ((thetainit - thetaend) / (generation_max - theta_start)) *
+      (generation - theta_start)
     if (theta < 0) theta <- 0
     
     # attractors: best individual of the current generation for everybody
@@ -362,6 +368,7 @@ QGA <- function(popsize = 20,
                                           chromosome, solution_best)
       last_improvement <- generation
       n_restarts       <- n_restarts + 1L
+      if (restart_theta && generation < generation_max) theta_start <- generation
       if (verbose) cat("\n *** Partial restart at generation", generation)
     }
     
