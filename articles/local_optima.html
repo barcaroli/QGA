@@ -97,7 +97,7 @@
                         <h4 data-toc-skip class="author">Giulio
 Barcaroli</h4>
             
-            <h4 data-toc-skip class="date">2026-10-19</h4>
+            <h4 data-toc-skip class="date">2026-10-21</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/barcaroli/QGA/blob/main/vignettes/local_optima.Rmd" class="external-link"><code>vignettes/local_optima.Rmd</code></a></small>
       <div class="hidden name"><code>local_optima.Rmd</code></div>
@@ -252,10 +252,368 @@ again.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">restart</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">fitness_best</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 48</span></span></code></pre></div>
-<p>Too frequent restarts (small <code>restart_iters</code>) do not give
-the population the time to converge; if <code>stop_iters</code> is used,
-<code>restart_iters</code> must be smaller than <code>stop_iters</code>,
-otherwise the algorithm stops before any restart.</p>
+<p>If <code>stop_iters</code> is used, <code>restart_iters</code> must
+be smaller than <code>stop_iters</code>, otherwise the algorithm stops
+before any restart.</p>
+<div class="section level4">
+<h4 id="choosing-restart_iters-and-restart_strength">Choosing <code>restart_iters</code> and
+<code>restart_strength</code><a class="anchor" aria-label="anchor" href="#choosing-restart_iters-and-restart_strength"></a>
+</h4>
+<p>The benchmark below (20 seeds for each configuration,
+<code>popsize = 20</code>, default <code>theta</code>; see the last
+section for the two problems) shows that the good values of
+<code>restart_iters</code> do <strong>not</strong> scale with
+<code>generation_max</code>: they depend on the time a qubit needs to
+saturate, about (pi/4)/theta generations (see the table on
+<code>theta</code> above). With the default angles this time is 5-10
+generations, and on trap-4 <code>restart_iters = 20</code> finds the
+optimum in 20 runs out of 20 with 600 generations, while
+<code>restart_iters = 40</code> never does, with 300 or 600 generations.
+Frequent restarts work because the population never collapses
+completely: every restart pushes it back in superposition before the
+qubits freeze.</p>
+<table class="table">
+<colgroup>
+<col width="16%">
+<col width="15%">
+<col width="18%">
+<col width="11%">
+<col width="21%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">generation_max</th>
+<th align="left">restart_iters</th>
+<th align="left">restart_strength</th>
+<th align="right">trap4_mean</th>
+<th align="left">trap4_optimum_found</th>
+<th align="right">rastrigin_mean</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">none</td>
+<td align="left"></td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.31</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">10</td>
+<td align="left">0.25</td>
+<td align="right">46.50</td>
+<td align="left">14/20</td>
+<td align="right">-11.72</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">10</td>
+<td align="left">0.5</td>
+<td align="right">48.00</td>
+<td align="left">20/20</td>
+<td align="right">-15.58</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">10</td>
+<td align="left">1</td>
+<td align="right">40.90</td>
+<td align="left">1/20</td>
+<td align="right">-19.99</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">20</td>
+<td align="left">0.25</td>
+<td align="right">42.30</td>
+<td align="left">0/20</td>
+<td align="right">-11.00</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">20</td>
+<td align="left">0.5</td>
+<td align="right">46.20</td>
+<td align="left">12/20</td>
+<td align="right">-10.69</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">20</td>
+<td align="left">1</td>
+<td align="right">43.20</td>
+<td align="left">3/20</td>
+<td align="right">-14.07</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">40</td>
+<td align="left">0.25</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.27</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">40</td>
+<td align="left">0.5</td>
+<td align="right">42.20</td>
+<td align="left">0/20</td>
+<td align="right">-10.21</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">40</td>
+<td align="left">1</td>
+<td align="right">42.80</td>
+<td align="left">1/20</td>
+<td align="right">-11.36</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">80</td>
+<td align="left">0.25</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.16</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">80</td>
+<td align="left">0.5</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.24</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">80</td>
+<td align="left">1</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-10.08</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">none</td>
+<td align="left"></td>
+<td align="right">42.20</td>
+<td align="left">0/20</td>
+<td align="right">-12.39</td>
+</tr>
+<tr class="odd">
+<td align="right">150</td>
+<td align="left">5</td>
+<td align="left">0.5</td>
+<td align="right">37.10</td>
+<td align="left">5/20</td>
+<td align="right">-27.75</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">10</td>
+<td align="left">0.5</td>
+<td align="right">45.40</td>
+<td align="left">14/20</td>
+<td align="right">-19.75</td>
+</tr>
+<tr class="odd">
+<td align="right">150</td>
+<td align="left">20</td>
+<td align="left">0.5</td>
+<td align="right">42.10</td>
+<td align="left">0/20</td>
+<td align="right">-13.09</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">40</td>
+<td align="left">0.5</td>
+<td align="right">42.20</td>
+<td align="left">0/20</td>
+<td align="right">-12.77</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">none</td>
+<td align="left"></td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-9.16</td>
+</tr>
+<tr class="even">
+<td align="right">600</td>
+<td align="left">20</td>
+<td align="left">0.5</td>
+<td align="right">48.00</td>
+<td align="left">20/20</td>
+<td align="right">-9.98</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">40</td>
+<td align="left">0.5</td>
+<td align="right">42.30</td>
+<td align="left">0/20</td>
+<td align="right">-8.45</td>
+</tr>
+<tr class="even">
+<td align="right">600</td>
+<td align="left">80</td>
+<td align="left">0.5</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-9.17</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">160</td>
+<td align="left">0.5</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-9.33</td>
+</tr>
+</tbody>
+</table>
+<p>From these results:</p>
+<ul>
+<li>
+<strong><code>restart_strength</code></strong>: 0.5 is the best
+compromise. A complete reset (1) throws away what the population has
+learned and is equivalent to a random restart; a weak restart (0.25)
+helps only if it is very frequent.</li>
+<li>
+<strong><code>restart_iters</code></strong>: on a deceptive problem,
+take 1.5-3 times the saturation time, i.e. <strong>10-20 with the
+default angles</strong>, and proportionally more with smaller angles
+(for instance 40-80 with <code>thetainit = 0.01*pi</code>). On a problem
+with many local optima, like Rastrigin, frequent restarts are harmful
+(they interrupt the local search), and less frequent restarts (40-80)
+give at most a small improvement.</li>
+<li>
+<strong><code>generation_max</code></strong>: it does not determine
+<code>restart_iters</code>, but it must leave room for several restarts
+after the population has converged: with 150 generations even
+<code>restart_iters = 10</code> is less effective than with 300. As a
+rough rule, <code>generation_max</code> should be at least 10-15 times
+<code>restart_iters</code>.</li>
+</ul>
+</div>
+<div class="section level4">
+<h4 id="restoring-the-rotation-angle-restart_theta">Restoring the rotation angle: <code>restart_theta</code><a class="anchor" aria-label="anchor" href="#restoring-the-rotation-angle-restart_theta"></a>
+</h4>
+<p>Since <code>theta</code> decays during the run, a late restart works
+with a small angle. With <code>restart_theta = TRUE</code>, at each
+restart <code>theta</code> is brought back to <code>thetainit</code> and
+decays again to <code>thetaend</code> over the remaining
+generations.</p>
+<table class="table">
+<colgroup>
+<col width="13%">
+<col width="12%">
+<col width="15%">
+<col width="16%">
+<col width="15%">
+<col width="14%">
+<col width="13%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">generation_max</th>
+<th align="right">restart_iters</th>
+<th align="right">restart_strength</th>
+<th align="left">trap4_found_FALSE</th>
+<th align="left">trap4_found_TRUE</th>
+<th align="right">rastrigin_FALSE</th>
+<th align="right">rastrigin_TRUE</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">300</td>
+<td align="right">20</td>
+<td align="right">0.5</td>
+<td align="left">12/20</td>
+<td align="left">1/20</td>
+<td align="right">-10.69</td>
+<td align="right">-10.39</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="right">20</td>
+<td align="right">1.0</td>
+<td align="left">3/20</td>
+<td align="left">10/20</td>
+<td align="right">-14.07</td>
+<td align="right">-13.16</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="right">40</td>
+<td align="right">0.5</td>
+<td align="left">0/20</td>
+<td align="left">0/20</td>
+<td align="right">-10.21</td>
+<td align="right">-9.57</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="right">40</td>
+<td align="right">1.0</td>
+<td align="left">1/20</td>
+<td align="left">2/20</td>
+<td align="right">-11.36</td>
+<td align="right">-10.10</td>
+</tr>
+<tr class="odd">
+<td align="right">150</td>
+<td align="right">10</td>
+<td align="right">0.5</td>
+<td align="left">14/20</td>
+<td align="left">18/20</td>
+<td align="right">-19.75</td>
+<td align="right">-16.88</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="right">20</td>
+<td align="right">0.5</td>
+<td align="left">0/20</td>
+<td align="left">0/20</td>
+<td align="right">-13.09</td>
+<td align="right">-12.90</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="right">40</td>
+<td align="right">0.5</td>
+<td align="left">0/20</td>
+<td align="left">0/20</td>
+<td align="right">-8.45</td>
+<td align="right">-7.99</td>
+</tr>
+<tr class="even">
+<td align="right">600</td>
+<td align="right">80</td>
+<td align="right">0.5</td>
+<td align="left">0/20</td>
+<td align="left">0/20</td>
+<td align="right">-9.17</td>
+<td align="right">-8.84</td>
+</tr>
+</tbody>
+</table>
+<p>The effect is mixed. On Rastrigin restoring the angle always gives a
+slightly better mean, but the differences are small compared with the
+variability among seeds. On trap-4 it helps after a complete reset
+(<code>restart_strength = 1</code>) and with few generations, but it
+spoils the best configuration (<code>restart_iters = 20</code>,
+<code>restart_strength = 0.5</code>: from 12/20 to 1/20). The reason is
+that <code>theta</code> is the step towards the attractor: right after a
+partial restart the attractor is still the best solution, and a larger
+angle brings the population back to it more quickly. For this reason
+<code>restart_theta</code> is off by default; it can be tried together
+with stronger restarts.</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="personal-attractors-and-migration-attractor_type-personal">Personal attractors and migration:
@@ -332,7 +690,7 @@ optima.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>h <span class="op">=</span> <span class="fl">48</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"bottomright"</span>, lty <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"blue"</span><span class="op">)</span>,</span>
 <span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"default"</span>, <span class="st">"restart_iters = 20"</span>, <span class="st">"attractor_type = 'personal'"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="local_optima_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="672"></p>
+<p><img src="local_optima_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="" width="672"></p>
 <p>A single run is not enough to compare the options, because the QGA is
 stochastic. The following section reports the results obtained on 20
 runs for each configuration.</p>
@@ -467,9 +825,13 @@ local optima.</li>
 <li>Start from smaller rotation angles than the defaults, taking into
 account the number of generations (see the table above).</li>
 <li>If the fitness history shows a long flat line with an early last
-improvement, try a partial restart,
-e.g. <code>restart_iters = 20</code>,
-<code>restart_strength = 0.5</code>.</li>
+improvement, try a partial restart with
+<code>restart_strength = 0.5</code> and <code>restart_iters</code> equal
+to 1.5-3 times the saturation time (pi/4)/theta, i.e. 10-20 with the
+default angles, independently of <code>generation_max</code>.</li>
+<li>Use <code><a href="../reference/parameters_hint.html">parameters_hint()</a></code> to get a first set of values from
+<code>generation_max</code>, the genome and the kind of problem (see
+below).</li>
 <li>For problems with many local optima scattered in the search space,
 try <code>attractor_type = "personal"</code>, possibly with more
 generations.</li>
@@ -479,9 +841,226 @@ the fitness evaluation is expensive consider
 </ul>
 </div>
 <div class="section level2">
+<h2 id="suggested-values-parameters_hint">Suggested values: <code>parameters_hint()</code><a class="anchor" aria-label="anchor" href="#suggested-values-parameters_hint"></a>
+</h2>
+<p>The function <code><a href="../reference/parameters_hint.html">parameters_hint()</a></code> turns the guidelines
+above into a first set of values, given <code>generation_max</code>, the
+genome (<code>Genome</code>, <code>nvalues_sol</code>) and the kind of
+problem (<code>"deceptive"</code>, <code>"multimodal"</code>,
+<code>"unimodal"</code> or <code>"unknown"</code>):</p>
+<ul>
+<li>the angles are chosen so that the saturation time is about
+<code>generation_max / 40</code> when restarts are used, and
+<code>generation_max / 10</code> otherwise, never faster than the
+default angles;</li>
+<li>
+<code>restart_iters</code> is 1.5 times the saturation time for
+deceptive problems, 3 times when the problem is unknown, 6 times for
+problems with many local optima; no restart for unimodal problems;</li>
+<li>
+<code>restart_strength = 0.5</code>; personal attractors for unknown
+and multimodal problems.</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hint</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/parameters_hint.html">parameters_hint</a></span><span class="op">(</span>generation_max <span class="op">=</span> <span class="fl">300</span>, Genome <span class="op">=</span> <span class="fl">48</span>, nvalues_sol <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>                        problem_type <span class="op">=</span> <span class="st">"deceptive"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  QGA parameters hint</span></span>
+<span><span class="co">#&gt;  -------------------</span></span>
+<span><span class="co">#&gt;  problem_type: deceptive; genome of 48 genes x 1 bits = 48 qubits; 300 generations</span></span>
+<span><span class="co">#&gt;  saturation time (pi/4)/theta: about 7.5 generations</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  thetainit        = 0.1396   (= 0.0444 * pi)</span></span>
+<span><span class="co">#&gt;  thetaend         = 0.0698   (= 0.0222 * pi)</span></span>
+<span><span class="co">#&gt;  restart_iters    = 11   (1.5 x saturation time)</span></span>
+<span><span class="co">#&gt;  restart_strength = 0.5</span></span>
+<span><span class="co">#&gt;  restart_theta    = FALSE  (experimental)</span></span>
+<span><span class="co">#&gt;  epsilon          = 0</span></span>
+<span><span class="co">#&gt;  attractor_type   = "generation"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  fitness evaluations: up to 6020</span></span>
+<span><span class="co">#&gt;  These are starting points: compare a few configurations on several seeds.</span></span></code></pre></div>
+<p>The returned list can be passed directly to <code><a href="../reference/QGA.html">QGA()</a></code>:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">QGA</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>popsize <span class="op">=</span> <span class="fl">20</span>, generation_max <span class="op">=</span> <span class="fl">300</span>,</span>
+<span>                           nvalues_sol <span class="op">=</span> <span class="fl">2</span>, Genome <span class="op">=</span> <span class="fl">48</span>,</span>
+<span>                           eval_fitness <span class="op">=</span> <span class="va">trap4</span>, eval_func_inputs <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>,</span>
+<span>                      <span class="va">hint</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>On the two test problems (20 seeds, <code>popsize = 20</code>) the
+suggested values improve on the defaults for every number of
+generations, both when the kind of problem is given and when it is
+declared unknown:</p>
+<table class="table">
+<colgroup>
+<col width="17%">
+<col width="29%">
+<col width="12%">
+<col width="22%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">generation_max</th>
+<th align="left">configuration</th>
+<th align="right">trap4_mean</th>
+<th align="left">trap4_optimum_found</th>
+<th align="right">rastrigin_mean</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">150</td>
+<td align="left">default</td>
+<td align="right">42.20</td>
+<td align="left">0/20</td>
+<td align="right">-12.39</td>
+</tr>
+<tr class="even">
+<td align="right">150</td>
+<td align="left">hint (problem type given)</td>
+<td align="right">45.40</td>
+<td align="left">14/20</td>
+<td align="right">-10.35</td>
+</tr>
+<tr class="odd">
+<td align="right">150</td>
+<td align="left">hint (unknown)</td>
+<td align="right">43.95</td>
+<td align="left">1/20</td>
+<td align="right">-11.21</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">default</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-11.31</td>
+</tr>
+<tr class="odd">
+<td align="right">300</td>
+<td align="left">hint (problem type given)</td>
+<td align="right">48.00</td>
+<td align="left">20/20</td>
+<td align="right">-9.00</td>
+</tr>
+<tr class="even">
+<td align="right">300</td>
+<td align="left">hint (unknown)</td>
+<td align="right">44.00</td>
+<td align="left">1/20</td>
+<td align="right">-9.56</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">default</td>
+<td align="right">42.25</td>
+<td align="left">0/20</td>
+<td align="right">-9.16</td>
+</tr>
+<tr class="even">
+<td align="right">600</td>
+<td align="left">hint (problem type given)</td>
+<td align="right">47.60</td>
+<td align="left">19/20</td>
+<td align="right">-6.02</td>
+</tr>
+<tr class="odd">
+<td align="right">600</td>
+<td align="left">hint (unknown)</td>
+<td align="right">43.50</td>
+<td align="left">0/20</td>
+<td align="right">-6.81</td>
+</tr>
+</tbody>
+</table>
+<p>Knowing the kind of problem helps, especially on the deceptive one:
+with <code>"unknown"</code> the function chooses personal attractors,
+which are a good compromise on both problems but are less effective than
+restarts alone on trap-4. The suggestions are starting points: compare a
+few configurations on several seeds.</p>
+<div class="section level3">
+<h3 id="which-kind-of-problem">Which kind of problem?<a class="anchor" aria-label="anchor" href="#which-kind-of-problem"></a>
+</h3>
+<ul>
+<li>
+<strong>Unimodal</strong>: there is a single optimum, i.e. every
+local optimum is also the global one; starting from any solution, a
+chain of small improvements (e.g. changing one bit at a time) always
+leads to the optimum. Typical examples are additive and separable
+fitness functions, where each gene contributes independently of the
+others (e.g. the number of bits equal to 1). Real problems are rarely
+unimodal.</li>
+<li>
+<strong>Multimodal</strong>: there are many local optima, solutions
+that no small change can improve although better solutions exist
+elsewhere (e.g. Rastrigin). Almost all real combinatorial problems are
+multimodal (travelling salesman, knapsack with constraints, clustering,
+hub location), because of the interactions among genes (the value of a
+gene depends on the others) and of constraints handled with penalties,
+which split the search space into separate regions.</li>
+<li>
+<strong>Deceptive</strong>: a special case of multimodal problem, in
+which the local optima have larger basins of attraction and partial
+improvements lead <em>away</em> from the global optimum (Goldberg,
+1989): the combinations of a few genes that give on average a higher
+fitness are not part of the optimal solution. In trap-4, on average it
+pays to set the bits to 0, but the optimum has all bits equal to 1.</li>
+</ul>
+<p>The structure of the fitness function gives the first indications.
+Independent contributions of the genes suggest a unimodal problem;
+interactions or penalties a multimodal one. “All or nothing” rewards (a
+bonus only when a whole group of genes is complete, while intermediate
+configurations are worth less than the starting one), thresholds and
+penalties for intermediate states, or an optimum lying on a narrow
+boundary between constraints, reachable only through infeasible or
+penalised solutions, are typical signs of deception.</p>
+<p>The kind of problem can also be explored empirically:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Comparing configurations</strong> on 5-10 seeds each (the
+simplest and usually sufficient test):
+<ul>
+<li>with the default parameters, if all runs reach the same value and
+the same solution, the problem is probably unimodal (or at least easy);
+if they end on different solutions with different values, it is
+multimodal; if they converge early (low generation of last improvement)
+and <em>consistently</em> on the same mediocre solution, it may be
+deceptive;</li>
+<li>if frequent restarts (<code>problem_type = "deceptive"</code>) give
+a clear jump, as on trap-4 from 42 to 48, the problem is deceptive;</li>
+<li>if personal attractors help more than restarts, the problem is
+rather multimodal.</li>
+</ul>
+</li>
+<li>
+<strong>Marginal contributions of the genes</strong>: on a random
+sample of solutions, find for each gene the value giving the highest
+average fitness, and build the corresponding “greedy” solution. If it is
+poor and differs in many genes from the best solution found by the QGA,
+the average signal is misleading, i.e. the problem is deceptive. On
+trap-4 the greedy solution is “all zeros”, worth 36.</li>
+<li>
+<strong>Fitness-distance correlation</strong> (Jones and Forrest,
+1995): on a sample of solutions, compute the correlation between fitness
+and Hamming distance from the best known solution. For a maximisation
+problem a clearly negative correlation (fitness grows when getting
+closer to the optimum) indicates an easy problem; a correlation close to
+zero a difficult one; a positive correlation a deceptive one. The
+optimum must be known: in practice the best solution found is used, with
+the caveat that it may not be the global one.</li>
+</ol>
+<p><code>"unimodal"</code> removes the restarts and slows down the
+rotation, so it should be used only when one is sure: if the problem has
+traps, the risk of premature convergence increases. When in doubt, use
+<code>"unknown"</code> and switch to <code>"deceptive"</code> or
+<code>"multimodal"</code> if the comparison on several seeds suggests
+it.</p>
+</div>
+</div>
+<div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <ul>
+<li>Goldberg, D. E. (1989). <em>Genetic Algorithms in Search,
+Optimization and Machine Learning</em>. Addison-Wesley.</li>
 <li>Han, K.-H. and Kim, J.-H. (2002). Quantum-inspired evolutionary
 algorithm for a class of combinatorial optimization. <em>IEEE
 Transactions on Evolutionary Computation</em>, 6(6), 580-593.</li>
@@ -489,6 +1068,10 @@ Transactions on Evolutionary Computation</em>, 6(6), 580-593.</li>
 algorithms with a new termination criterion, H-epsilon gate, and
 two-phase scheme. <em>IEEE Transactions on Evolutionary
 Computation</em>, 8(2), 156-169.</li>
+<li>Jones, T. and Forrest, S. (1995). Fitness distance correlation as a
+measure of problem difficulty for genetic algorithms. <em>Proceedings of
+the Sixth International Conference on Genetic Algorithms</em>,
+184-192.</li>
 <li>Narayanan, A. and Moore, M. (1996). Quantum-inspired genetic
 algorithms. <em>Proceedings of IEEE International Conference on
 Evolutionary Computation</em>, 61-66.</li>

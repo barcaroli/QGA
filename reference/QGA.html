@@ -114,6 +114,7 @@ across generations.</p>
 <span>  epsilon <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  restart_iters <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  restart_strength <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  restart_theta <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  attractor_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"generation"</span>, <span class="st">"personal"</span><span class="op">)</span>,</span>
 <span>  migration_group_size <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  migration_local_period <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -241,6 +242,12 @@ Should be smaller than `stop_iters`. Default NULL (no restart).</p></dd>
 <dt id="arg-restart-strength">restart_strength<a class="anchor" aria-label="anchor" href="#arg-restart-strength"></a></dt>
 <dd><p>Numeric in \[0, 1\]. Fraction of the way each qubit
 angle is moved towards pi/4 at a restart (1 = full reset). Default 0.5.</p></dd>
+
+
+<dt id="arg-restart-theta">restart_theta<a class="anchor" aria-label="anchor" href="#arg-restart-theta"></a></dt>
+<dd><p>Logical. If TRUE, at each restart the rotation angle is
+brought back to `thetainit` and decays again linearly to `thetaend` over
+the remaining generations. Default FALSE.</p></dd>
 
 
 <dt id="arg-attractor-type">attractor_type<a class="anchor" aria-label="anchor" href="#arg-attractor-type"></a></dt>
