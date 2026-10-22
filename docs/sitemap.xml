@@ -1,24 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://barcaroli.github.io/QGA//index.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA//reference/QGA.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA//articles/airlines_hubs.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA//articles/clustering.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA//articles/functionMax.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA//articles/QGA.html</loc>
-  </url>
-  <url>
-    <loc>https://barcaroli.github.io/QGA//articles/TSP.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://barcaroli.github.io/QGA/404.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/articles/airlines_hubs.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/articles/BestStratification.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/articles/clustering.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/articles/functionMax.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/articles/index.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/articles/local_optima.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/articles/QGA.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/articles/TSP.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/authors.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/index.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/LICENSE-text.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/news/index.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/as.binary.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/evaluate.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/generate_pop.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/h_epsilon.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/index.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/interference.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/measure.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/migration.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/mutation.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/parameters_hint.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/partial_restart.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/plot_Output.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/QGA.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/repair.html</loc></url>
+<url><loc>https://barcaroli.github.io/QGA/reference/rotation.html</loc></url>
 </urlset>
+
