@@ -1,7 +1,0 @@
-destination: docs
-title: QGA
-url: https://barcaroli.github.io/QGA
-template:
-  params:
-    bootswatch: Italy
-    
