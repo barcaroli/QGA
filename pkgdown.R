@@ -7,7 +7,7 @@
 # use_cran_badge()
 
 # install.packages("tvthemes") # v1.1.0
-library(tvthemes)
+# library(tvthemes)
 
 # devtools::install_version("pkgdown", version = "1.6.1")
 # devtools::install_github("hadley/pkgdown")
